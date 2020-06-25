@@ -4,3 +4,6 @@
 \name{gamUtils}
 \alias{gamUtils}
 \title{Utilities for mgcv}
+\description{
+Here are some utilities to use with \code{mgcv}. This page will be populated with themes to help users get around.
+}
