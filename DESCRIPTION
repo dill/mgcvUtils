@@ -1,6 +1,6 @@
 Package: gamUtils
 Title: Some extra utilities for generalized additive modelling
-Version: 0.0.0.9000
+Version: 0.0.1.9000
 Authors@R: c(
     person("David L", "Miller",
            email = "dave@ninepointeightone.net",
