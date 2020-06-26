@@ -86,15 +86,6 @@ simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto",
     return( out )
   }
 
-  if(o$family$family == "gevlss"){
-    gev.rd <- function(mu, wt, scale) {
-      return(mu[ , 1] + exp(mu[ , 2]) *
-             ((-log(runif(nrow(mu))))^(-mu[ , 3])-1) / mu[ , 3])
-    }
-    out <- replicate(nsim, gev.rd(mu, w, scale))
-    return( out )
-  }
-
   out <- .simulate.gam(mu = mu, w = w, sig = o$sig2, method = method,
                        fam = o$family, nsim = nsim, u = u, trans = trans)
 
@@ -110,7 +101,7 @@ simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto",
 
 # Internal function to simulate observations for given family
 #
-#' @importFrom mgcv fix.family.rd fix.family.qf
+#' @importFrom mgcv fix.family.qf
 #' @importFrom stats runif predict
 .simulate.gam <- function(mu, w, sig, method, fam, nsim, u, trans) {
 
