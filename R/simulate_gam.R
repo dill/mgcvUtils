@@ -97,7 +97,16 @@ simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto", newdata
     out <- rlply(nsim, function(.nouse) rmvn(nrow(mu), mu, solve(crossprod(o$family$data$R))))
     return( out )
   }
-   
+
+  if(o$family$family == "gevlss"){
+    gev.rd <- function(mu, wt, scale) {
+      return(mu[ , 1] + exp(mu[ , 2]) *
+             ((-log(runif(nrow(mu))))^(-mu[ , 3])-1) / mu[ , 3])
+    }
+    out <- replicate(nsim, gev.rd(mu, w, scale))
+    return( out )
+  }
+
   out <- .simulate.gam(mu = mu, w = w, sig = o$sig2, method = method, fam = o$family, 
                          nsim = nsim, u = u, trans = trans)
   
