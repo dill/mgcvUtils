@@ -24,34 +24,22 @@
 
 \item{seed}{numeric; a random seed for the simulations.}
 
-\item{method}{the method used for the simulation. If set to "rd" then \code{o$family$rd()}
-will be used, if available. If set to "qf" then \code{o$family$qf()} (which is
-the inverse cdf of the response distribution) will be used to transform some
-uniform variates.}
+\item{method}{the method used for the simulation. If set to "rd" then \code{o$family$rd()} will be used, if available. If set to "qf" then \code{o$family$qf()} (which is the inverse cdf of the response distribution) will be used to  transform some uniform variates.}
 
 \item{newdata}{Optional new data frame or list to be passed to \link{predict.gam}.}
 
-\item{u}{a matrix where each row is a vector of uniform random variables in (0, 1).
-This will be used to simulate responses only if \code{method = "qf"}.}
+\item{u}{a matrix where each row is a vector of uniform random variables in (0, 1). This will be used to simulate responses only if \code{method = "qf"}.}
 
-\item{w}{vector of prior weights to be used in the simulations. If \code{newdata==NULL} then
-\code{w} is set to \code{object$prior.weights} otherwise it is a vector of ones.}
+\item{w}{vector of prior weights to be used in the simulations. If \code{newdata==NULL} then \code{w} is set to \code{object$prior.weights} otherwise it is a vector of ones.}
 
-\item{offset}{numeric vector of offsets. For GAMs with multiple linear predictor (see eg \link{gaulss}) it
-must be a list of vectors. NB: if \code{newdata!=NULL} the offsets will be assumed to be zero,
-unless their are explicitly provided. If \code{newdata==NULL} then simulations will use the
-offsets used during model fitting, and \code{offset} argument will be ignored.}
+\item{offset}{numeric vector of offsets. For GAMs with multiple linear predictor (see eg \link{gaulss}) it must be a list of vectors. NB: if \code{newdata!=NULL} the offsets will be assumed to be zero, unless their are explicitly provided. If \code{newdata==NULL} then simulations will use the offsets used during model fitting, and \code{offset} argument will be ignored.}
 
-\item{trans}{function used to transform or summarize each vector of simulated responses.
-It must take a vector as argument, but it can output a vector or a scalar.
-Potentially useful for saving storage (e.g. by transforming each simulated vector
-to a scalar). If left to \code{NULL} then \code{trans = identity} will be used.}
+\item{trans}{function used to transform or summarize each vector of simulated responses. It must take a vector as argument, but it can output a vector or a scalar. Potentially useful for saving storage (e.g. by transforming each simulated vector to a scalar). If left to \code{NULL} then \code{trans = identity} will be used.}
 
 \item{...}{currently not used.}
 }
 \value{
-A matrix where each column is a vector of simulated responses. The number of rows
-is equal to the number of responses in the fitted object.
+A matrix where each column is a vector of simulated responses. The number of rows is equal to the number of responses in the fitted object.
 }
 \description{
 This method can be used to simulate vectors of responses from a gamObject.
@@ -59,12 +47,12 @@ This method can be used to simulate vectors of responses from a gamObject.
 \examples{
 library(mgcv)
 
-set.seed(2) ## simulate some data... 
+set.seed(2) ## simulate some data...
 dat <- gamSim(1,n=400,dist="normal",scale=2)
 b <- gam(y~s(x0)+s(x1)+s(x2)+s(x3),data=dat)
 
 # Simulate three vectors of responses
-matplot(simulate(b, nsim = 3), pch = 19, col = c(1, 3, 4)) 
+matplot(simulate(b, nsim = 3), pch = 19, col = c(1, 3, 4))
 
 }
 \author{
