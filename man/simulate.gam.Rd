@@ -22,7 +22,7 @@
 
 \item{nsim}{the number of simulated vectors of responses. A positive integer.}
 
-\item{seed}{currently not used.}
+\item{seed}{numeric; a random seed for the simulations.}
 
 \item{method}{the method used for the simulation. If set to "rd" then \code{o$family$rd()}
 will be used, if available. If set to "qf" then \code{o$family$qf()} (which is
@@ -68,5 +68,5 @@ matplot(simulate(b, nsim = 3), pch = 19, col = c(1, 3, 4))
 
 }
 \author{
-Matteo Fasiolo
+based on mgcViz::simulate.gam by Matteo Fasiolo
 }

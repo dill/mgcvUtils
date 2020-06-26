@@ -4,7 +4,7 @@
 #' 
 #' @param object the output of a \code{gam()} or \code{bam()} call.
 #' @param nsim the number of simulated vectors of responses. A positive integer.
-#' @param seed currently not used.
+#' @param seed numeric; a random seed for the simulations.
 #' @param method the method used for the simulation. If set to "rd" then \code{o$family$rd()}
 #'               will be used, if available. If set to "qf" then \code{o$family$qf()} (which is
 #'               the inverse cdf of the response distribution) will be used to transform some
@@ -40,11 +40,26 @@
 #' @importFrom mgcv rmvn
 #' @export simulate.gam
 #' @export
-#' @author Matteo Fasiolo
+#' @author based on mgcViz::simulate.gam by Matteo Fasiolo
 #'
 simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto", newdata, 
                          u = NULL, w = NULL, offset = NULL, trans = NULL, ...)
 {
+
+  # set seed
+  # taken from gratia::simulate.gam by Gavin Simpson
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      runif(1)
+  }
+  if (is.null(seed)) {
+      RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+  } else {
+      R.seed <- get(".Random.seed", envir = .GlobalEnv)
+      set.seed(seed)
+      RNGstate <- structure(seed, kind = as.list(RNGkind()))
+      on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+  }
+
   o <- object
   method <- match.arg(method, c("auto", "rd", "qf"))
   if ( is.null(o$sig2) ){ o$sig2 <- summary(o)$dispersion }
