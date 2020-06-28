@@ -27,7 +27,7 @@ fix_family_rd <- function(fam) {
     ## ... if not provide gamUtils' version
     fnam <- paste0(".rd.", fam$family)
     
-    fam$rd <- get( fnam )
+    fam$rd <- match.fun( fnam )
     
     fam  
 }
