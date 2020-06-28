@@ -15,19 +15,20 @@
 #' @importFrom mgcv fix.family.rd
 #' @export
 #'
-fix.family.rd <- function(fam){
+fix_family_rd <- function(fam) {
   
-  fam <- mgcv::fix.family.rd(fam)
+    fam <- mgcv::fix.family.rd(fam)
   
-  # Try if mgcv provides $rd slot...
-  if( !is.null(fam$rd) ) return( fam )
-  
-  # ... if not provide gamUtils' version
-  fnam <- paste0(".rd.", fam$family)
-  
-  fam$rd <- get( fnam )
-  
-  return( fam )
-  
+    ## Try if mgcv provides $rd slot...
+    if( !is.null(fam$rd) ) {
+        return( fam )
+    }
+    
+    ## ... if not provide gamUtils' version
+    fnam <- paste0(".rd.", fam$family)
+    
+    fam$rd <- get( fnam )
+    
+    fam  
 }
 
