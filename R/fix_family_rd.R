@@ -13,7 +13,6 @@
 #' head( simulate(b, nsim = 2) )
 #' 
 #' @importFrom mgcv fix.family.rd
-#' @export fix.family.rd
 #' @export
 #'
 fix.family.rd <- function(fam){
