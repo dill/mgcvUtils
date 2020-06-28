@@ -31,4 +31,3 @@ fix_family_rd <- function(fam) {
     
     fam  
 }
-
