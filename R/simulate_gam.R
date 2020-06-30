@@ -107,7 +107,7 @@ simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto",
 
   # Try method == 'rd', if that does not work 'qf', if that is not good either throw an error
   if( method == "auto" ){
-    fam <- fix.family.rd(fam)
+    fam <- fix_family_rd(fam)
     if( is.null(fam$rd) ) {
       fam <- fix.family.qf(fam)
       method <- 'qf'
@@ -118,7 +118,7 @@ simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto",
   }
 
   if( method == "rd" ){
-    if( is.null(fam$rd) ) { fam <- fix.family.rd(fam) }
+    if( is.null(fam$rd) ) { fam <- fix_family_rd(fam) }
     if( is.null(fam$rd) ) { stop( "fam$rd unavailable, try using method = `qf`") }
     sim <- raply(nsim, { trans(fam$rd(mu, w, sig)) }  )
   }
