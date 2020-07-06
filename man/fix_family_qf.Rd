@@ -13,7 +13,7 @@ fix_family_qf(fam)
 Fix $qf() slot of a mgcv family.
 }
 \examples{
-library(mgcv);library(MASS)
+library(gamUtils); library(MASS)
 b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
          data=mcycle,family=gaulss())
 

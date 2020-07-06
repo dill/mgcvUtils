@@ -5,7 +5,7 @@
 #' @param fam an \code{mgcv} family
 #' 
 #' @examples
-#' library(mgcv);library(MASS)
+#' library(gamUtils); library(MASS)
 #' b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
 #'          data=mcycle,family=gaulss())
 #' 
