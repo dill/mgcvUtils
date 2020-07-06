@@ -14,7 +14,6 @@
 #' b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
 #'          data=mcycle,family=gaulss())
 #' 
-#' b$family <- fix_family_qf( b$family )
 #' qfit <- quantile(b, c(0.05, 0.25, 0.5, 0.75, 0.95))
 #' 
 #' plot(mcycle, ylim = c(-160, 100))
