@@ -3,6 +3,7 @@
 S3method(Predict.matrix,spde.smooth)
 S3method(simulate,gam)
 S3method(smooth.construct,spde.smooth.spec)
+export(fix_family_qf)
 export(fix_family_rd)
 export(simulate.gam)
 importFrom(mgcv,Predict.matrix)
