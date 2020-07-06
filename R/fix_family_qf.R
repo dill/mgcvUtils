@@ -20,6 +20,7 @@
 #' }
 #' 
 #' @importFrom mgcv fix.family.qf
+#' @importFrom stats qnorm
 #' @export
 #'
 fix_family_qf <- function(fam) {
