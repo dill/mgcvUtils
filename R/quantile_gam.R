@@ -24,23 +24,48 @@
 #' @export quantile.gam
 #' @export
 #'
-quantile.gam <- function(x, probs, newdata = NULL, ...){
+quantile.gam <- function(x, probs, newdata, w = NULL, offset = NULL, ...){
   
-  x$family <- fix_family_qf( x$family )
+  o <- x
   
-  if( is.null(newdata) ){
-    mu <- x$fitted.values
-  } else {
-    mu <- predict(x, type = "response", newdata = newdata, ...)
+  sig <- o$sig2
+  if ( is.null(sig) ){ sig <- summary(o)$dispersion }
+  
+  # Either (a) use data in GAM object or (b) predict using new data 
+  if( missing(newdata) ){ # (a) the offset should already be included in o$fitted.values
+    
+    mu <- o$fitted.values
+    if( is.null(w) ) { w <- o$prior.weights }
+    if( !is.null(offset) ) { message("simulate.gam: offset argument ignored. No newdata provided, so offset is already in object$fitted.values")}
+    
+  } else{ # (b) the user-defined offset is added to linear predictor
+    
+    mu <- predict(o, newdata = newdata, type = "link")
+    if( is.null(w) ){ w <- mu*0 + 1 }
+    
+    # Dealing with offset and inverting link function
+    form <- o$formula
+    if( is.list(form) ){ # [1] GAMLSS case
+      n <- length( mu[[1]] )
+      nte <- length( form )
+      lnki <- lapply(o$family$linfo, "[[", "linkinv")
+      if( is.null(offset) ) { offset <- rlply(nte, { numeric(n) }) }
+      mu <- t( laply(1:nte, function(.ii){ lnki[[.ii]](mu[ , .ii] + offset[[.ii]]) }) )
+    } else { # [2] GAM case
+      if( is.null(offset) ) { offset <- mu * 0 }
+      mu <- o$family$linkinv( mu + offset )
+    }
+    
   }
   
-  # NEED TO DEAL PROPERLY WITH WT AND SCALE AT SOME POINT!
+  o$family <- fix_family_qf( o$family )
+
   out <- sapply(probs, function(.p){
-    .o <- x$family$qf(p = .p, mu = mu, wt = NULL, scale = NULL)
-    return( .o )
+    tmp <- o$family$qf(p = .p, mu = mu, wt = w, scale = sig)
+    return( tmp )
   })
   
-  colnames( out ) <- probs 
+  if( is.matrix(out) ){ colnames( out ) <- probs }
   
   return( out )
   

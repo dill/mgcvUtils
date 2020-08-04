@@ -4,7 +4,7 @@
 \alias{quantile.gam}
 \title{Conditional quantiles a GAM object}
 \usage{
-\method{quantile}{gam}(x, probs, newdata = NULL, ...)
+\method{quantile}{gam}(x, probs, newdata, w = NULL, offset = NULL, ...)
 }
 \arguments{
 \item{x}{the output of a \code{gam()} or \code{bam()} call.}

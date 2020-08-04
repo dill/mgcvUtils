@@ -6,3 +6,7 @@
 }
 
 
+.qf.gaussian <-function(p, mu, wt = NULL, scale = NULL) {
+  out <- qnorm(p, mu, sqrt(scale/wt))
+  return( out )
+}
