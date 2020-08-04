@@ -5,7 +5,7 @@
 #' @param fam an \code{mgcv} family
 #' 
 #' @examples
-#' library(gamUtils); library(MASS)
+#' library(mgcvUtils); library(MASS)
 #' b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
 #'          data=mcycle,family=gaulss())
 #' 
@@ -32,10 +32,10 @@ fix_family_qf <- function(fam) {
     return( fam )
   }
   
-  ## ... if not provide gamUtils' version
+  ## ... if not provide mgcvUtils' version
   fnam <- paste0(".qf.", fam$family)
   
-  fam$qf <- get(fnam, mode = "function", envir = asNamespace("gamUtils"))
+  fam$qf <- get(fnam, mode = "function", envir = asNamespace("mgcvUtils"))
   
   fam  
 }
