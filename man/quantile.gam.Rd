@@ -24,7 +24,7 @@ This method can be used to get the estimated conditional quantiles of the respon
 variable.
 }
 \examples{
-library(gamUtils); library(MASS)
+library(mgcvUtils); library(MASS)
 b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
          data=mcycle,family=gaulss())
 

@@ -13,7 +13,7 @@ fix_family_rd(fam)
 Fix $rd() slot of a mgcv family.
 }
 \examples{
-library(gamUtils)
+library(mgcvUtils)
 set.seed(525)
 dat <- gamSim(1,n=400,dist="normal",scale=2)
 b <- gam(list(y~s(x0),~s(x1),~1),data=dat,family=gevlss)

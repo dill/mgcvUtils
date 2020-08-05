@@ -13,7 +13,7 @@ fix_family_cdf(fam)
 Fix $cdf() slot of a mgcv family.
 }
 \examples{
-library(gamUtils); library(MASS)
+library(mgcvUtils); library(MASS)
 b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
          data=mcycle,family=gaulss())
 

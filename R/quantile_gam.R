@@ -10,7 +10,7 @@
 #' @return A matrix where each column is a vector of estimated quantiles responses. 
 #'         The number of rows is equal to the number of responses in the fitted object or in \code{newdata}.
 #' @examples
-#' library(gamUtils); library(MASS)
+#' library(mgcvUtils); library(MASS)
 #' b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
 #'          data=mcycle,family=gaulss())
 #' 
