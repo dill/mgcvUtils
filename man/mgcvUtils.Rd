@@ -2,8 +2,18 @@
 % Please edit documentation in R/mgcvUtils-package.R
 \docType{package}
 \name{mgcvUtils}
+\alias{mgcvUtils-package}
 \alias{mgcvUtils}
 \title{Utilities for mgcv}
 \description{
 Here are some utilities to use with \code{mgcv}. This page will be populated with themes to help users get around.
+}
+\author{
+\strong{Maintainer}: David L Miller \email{dave@ninepointeightone.net} (\href{https://orcid.org/0000-0002-9640-6755}{ORCID})
+
+Authors:
+\itemize{
+  \item Matteo Fasiolo \email{matteo.fasiolo@gmail.com}
+}
+
 }
