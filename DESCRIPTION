@@ -19,7 +19,12 @@ Depends:
     R (>= 3.4),
     mgcv (>= 1.8-28)
 Imports:
-    plyr
+    plyr,
+    dplyr,
+    ggplot2,
+    statmod,
+    tidyr,
+    rlang
 Suggests:
     INLA, 
     MASS

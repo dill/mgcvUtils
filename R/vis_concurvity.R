@@ -13,7 +13,8 @@
 #' @param type concurvity measure to plot, see [`concurvity`][mgcv::concurvity]
 #' @author David L Miller
 #' @export
-#' @importFrom graphics image layout
+#' @importFrom graphics image layout axis
+#' @importFrom mgcv concurvity
 #' @examples
 #' # example from ?concurvity
 #' library(mgcv)
@@ -32,9 +33,6 @@
 #'
 #' ## assess concurvity between each term and `rest of model'...
 #' vis_concurvity(b)
-#'
-#' ## ... and now look at pairwise concurvity between terms...
-#' vis_concurvity(b,full=FALSE)
 vis_concurvity <- function(model, type="estimate"){
 
   # calculate concurvity for this model

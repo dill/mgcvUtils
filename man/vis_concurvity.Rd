@@ -40,9 +40,6 @@ b <- gam(y ~ s(t,k=15) + s(x,k=15),method="REML")
 
 ## assess concurvity between each term and `rest of model'...
 vis_concurvity(b)
-
-## ... and now look at pairwise concurvity between terms...
-vis_concurvity(b,full=FALSE)
 }
 \author{
 David L Miller
