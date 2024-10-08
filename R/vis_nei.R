@@ -12,6 +12,7 @@
 #' @importFrom dplyr mutate select "%>%" case_match
 #' @importFrom ggplot2 aes ggplot geom_tile theme_minimal coord_cartesian labs scale_fill_manual
 #' @importFrom rlang .data
+#' @export
 vis_nei <- function(nei){
 
 # reminder from the nei documentation section of ?gam
