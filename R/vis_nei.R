@@ -35,7 +35,7 @@ vis_nei <- function(nei){
   mm[1, intersect(this_pred, this_out)] <- 0
 
   # do the rest
-  for(j in 2:(length(nei$m)-1)){
+  for(j in 2:length(nei$m)){
     this_out <- nei$k[(nei$m[j-1]+1):nei$m[j]]
     this_pred <- nei$i[(nei$mi[j-1]+1):nei$mi[j]]
     mm[j, this_pred] <- 1
