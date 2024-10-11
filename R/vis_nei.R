@@ -25,7 +25,7 @@ vis_nei <- function(nei){
 # neighbourhood j.
 
   # build a matrix to hold everything
-  mm <- matrix(NA, nrow=length(nei$m), ncol=max(nei$k))
+  mm <- matrix(NA, nrow=length(nei$m), ncol=max(c(nei$k, nei$i)))
   # we'll encode this with 1 if it's "in" and -1 if it's predicted
   # do 1
   this_out <- nei$k[1:nei$m[1]]
