@@ -17,27 +17,27 @@ vis_nei <- function(nei){
 
 # reminder from the nei documentation section of ?gam
 
-# 'k' is the vector of indices to be dropped for each neighbourhood and 'm'
-# gives the end of each neighbourhood. So 'nei$k[(nei$m[j-1]+1):nei$m[j]]'
-# gives the points dropped for the neighbourhood 'j'. 'i' is the vector of
-# indices of points to predict, with corresponding endpoints 'mi'. So
-# 'nei$i[(nei$mi[j-1]+1):nei$mi[j]]' indexes the points to predict for
+# 'a' is the vector of indices to be dropped for each neighbourhood and 'ma'
+# gives the end of each neighbourhood. So 'nei$a[(nei$ma[j-1]+1):nei$ma[j]]'
+# gives the points dropped for the neighbourhood 'j'. 'd' is the vector of
+# indices of points to predict, with corresponding endpoints 'md'. So
+# 'nei$d[(nei$md[j-1]+1):nei$md[j]]' indexes the points to predict for
 # neighbourhood j.
 
   # build a matrix to hold everything
-  mm <- matrix(NA, nrow=length(nei$m), ncol=max(c(nei$k, nei$i)))
+  mm <- matrix(NA, nrow=length(nei$ma), ncol=max(c(nei$a, nei$d)))
   # we'll encode this with 1 if it's "in" and -1 if it's predicted
   # do 1
-  this_out <- nei$k[1:nei$m[1]]
-  this_pred <- nei$i[1:nei$mi[1]]
+  this_out <- nei$a[1:nei$ma[1]]
+  this_pred <- nei$d[1:nei$md[1]]
   mm[1, this_pred] <- 1
   mm[1, this_out] <- -1
   mm[1, intersect(this_pred, this_out)] <- 0
 
   # do the rest
-  for(j in 2:length(nei$m)){
-    this_out <- nei$k[(nei$m[j-1]+1):nei$m[j]]
-    this_pred <- nei$i[(nei$mi[j-1]+1):nei$mi[j]]
+  for(j in 2:length(nei$ma)){
+    this_out <- nei$a[(nei$ma[j-1]+1):nei$ma[j]]
+    this_pred <- nei$d[(nei$md[j-1]+1):nei$md[j]]
     mm[j, this_pred] <- 1
     mm[j, this_out] <- -1
     mm[j, intersect(this_pred, this_out)] <- 0

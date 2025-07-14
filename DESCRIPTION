@@ -1,6 +1,6 @@
 Package: mgcvUtils
 Title: Some extra utilities for generalized additive modelling
-Version: 0.0.1.9000
+Version: 0.0.2
 Authors@R: c(
     person("David L", "Miller",
            email = "dave@ninepointeightone.net",
@@ -17,7 +17,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
     R (>= 3.4),
-    mgcv (>= 1.8-28)
+    mgcv (>= 1.9-3)
 Imports:
     plyr,
     dplyr,
