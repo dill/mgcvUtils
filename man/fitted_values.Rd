@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitted_values_clognorm.R
 \name{fitted_values_clognorm}
 \alias{fitted_values_clognorm}
-\title{Generate fitted values from a estimated GAM}
+\title{Generate fitted values from a estimated GAM (censored log normal version)}
 \usage{
 fitted_values_clognorm(
   object,
@@ -13,15 +13,14 @@ fitted_values_clognorm(
 )
 }
 \arguments{
-\item{object}{a fitted model. Currently only models fitted by \code{\link[mgcv:gam]{mgcv::gam()}}
-and \code{\link[mgcv:bam]{mgcv::bam()}} are supported.}
+\item{object}{a fitted model using \code{clognorm} as the response.}
 
 \item{data}{optional data frame of covariate values for which fitted values
 are to be returned.}
 
 \item{scale}{character; what scale should the fitted values be returned on?
-\code{"linear predictor"} is a synonym for \code{"link"} if you prefer that
-terminology.}
+use \code{"response"} to obtain intervals on the response scale (exponentiated)
+for a log-normally distributed response.}
 
 \item{ci_level}{numeric; a value between 0 and 1 indicating the coverage of
 the credible interval.}
@@ -40,36 +39,11 @@ used to fit the model (if \code{data} was \code{NULL}), or the variables supplie
 \item \code{lower}, \code{upper}: the limits of the credible interval on the fitted values,
 on the specified scale.
 }
-
-Models fitted with certain families will include additional variables
-\itemize{
-\item \code{mgcv::ocat()} models: when \code{scale = "repsonse"}, the returned object will
-contain a \code{row} column and a \code{category} column, which indicate to which row
-of the \code{data} each row of the returned object belongs. Additionally, there
-will be \code{nrow(data) * n_categories} rows in the returned object; each row
-is the predicted probability for a single category of the response.
-}
 }
 \description{
-Generate fitted values from a estimated GAM
+This is a stand-in replacement for \code{gratia::fitted_values} to be used with
+the clognorm family and make predictions on the response scale.
 }
-\note{
-For most families, regardless of the scale on which the fitted values
-are returned, the \code{se} component of the returned object is on the \emph{link}
-(\emph{linear predictor}) scale, not the response scale. An exception is the
-\code{mgcv::ocat()} family, for which the \code{se} is on the response scale if
-\code{scale = "response"}.
-}
-\examples{
-load_mgcv()
-\dontshow{
-op <- options(cli.unicode = FALSE, pillar.sigfig = 6)
-}
-sim_df <- data_sim("eg1", n = 400, dist = "normal", scale = 2, seed = 2)
-m <- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3), data = sim_df, method = "REML")
-fv <- fitted_values(m)
-fv
-\dontshow{
-options(op)
-}
+\seealso{
+clognorm
 }
