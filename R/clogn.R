@@ -88,8 +88,7 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
                                         eta=linear.predictors, offset,
                                         prior.weights)
     posr$family <- paste("clog", attr(family, "base"),
-                         # not we model theta = sigma/2 see ?cnorm
-                         "norm(",round(2*family$getTheta(TRUE),3),")",sep="")
+                         "norm(",round(family$getTheta(TRUE),3),")",sep="")
     posr
   } ## postproc
 
