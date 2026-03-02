@@ -13,7 +13,7 @@
 #' taken as a fixed value of standard deviation (not its log). If supplied and
 #' negative taken as negative of initial value for standard deviation (not its
 #' log).
-#' @param link The link function: '"identity"', '"log"' or '"sqrt"'.
+#' @param link The link function: only '"identity"' is supported
 #' @param base the base of the logarithm used. base may be any number or "e"
 #' @return `family` object
 #' @importFrom mgcv predict.gam predict.bam
@@ -65,6 +65,10 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
   # borrow find dull deviance from mgcv cheat code
   find.null.dev <- utils::getFromNamespace("find.null.dev", "mgcv")
 
+  if(!is.null(theta) || link != "identity"){
+    stop("Only estimated theta and identity link are supported")
+  }
+
   # first make a copy of mgcv::cnorm by Simon Wood
   cln <- mgcv::cnorm()#theta=theta, link=link)
 
@@ -84,7 +88,8 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
                                         eta=linear.predictors, offset,
                                         prior.weights)
     posr$family <- paste("clog", attr(family, "base"),
-                         "norm(",round(family$getTheta(TRUE),3),")",sep="")
+                         # not we model theta = sigma/2 see ?cnorm
+                         "norm(",round(2*family$getTheta(TRUE),3),")",sep="")
     posr
   } ## postproc
 

@@ -12,7 +12,7 @@ taken as a fixed value of standard deviation (not its log). If supplied and
 negative taken as negative of initial value for standard deviation (not its
 log).}
 
-\item{link}{The link function: '"identity"', '"log"' or '"sqrt"'.}
+\item{link}{The link function: only '"identity"' is supported}
 
 \item{base}{the base of the logarithm used. base may be any number or "e"}
 }
