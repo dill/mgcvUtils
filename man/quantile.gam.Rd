@@ -7,24 +7,30 @@
 \method{quantile}{gam}(x, probs, newdata, w = NULL, offset = NULL, ...)
 }
 \arguments{
-\item{x}{the output of a \code{gam()} or \code{bam()} call.}
+\item{x}{the output of a \code{gam} or \code{bam} call}
 
-\item{probs}{numeric vector of probabilities with values in (0,1).}
+\item{probs}{numeric vector of probabilities with values in (0,1)}
 
-\item{newdata}{Optional new data frame or list to be passed to \link{predict.gam}.}
+\item{newdata}{Optional new data frame or list to be passed to \code{predict.gam}}
 
-\item{...}{funther arguments to be passed to \code{predict}.}
+\item{w}{weights}
+
+\item{offset}{offset}
+
+\item{...}{funther arguments to be passed to \code{predict}}
 }
 \value{
-A matrix where each column is a vector of estimated quantiles responses.
-The number of rows is equal to the number of responses in the fitted object or in \code{newdata}.
+A matrix where each column is a vector of estimated quantiles
+responses. The number of rows is equal to the number of responses in the
+fitted object or in \code{newdata}.
 }
 \description{
-This method can be used to get the estimated conditional quantiles of the response
-variable.
+This method can be used to get the estimated conditional
+quantiles of the response variable.
 }
 \examples{
-library(mgcvUtils); library(MASS)
+library(mgcvUtils)
+library(MASS)
 b <- gam(list(accel~s(times,k=20,bs="ad"),~s(times)),
          data=mcycle,family=gaulss())
 

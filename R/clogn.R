@@ -61,6 +61,10 @@
 #'   geom_segment(aes(y=pred.lower.cor, yend=pred.upper.cor, x=pred.old, xend=pred.old)) +
 #'   theme_minimal()
 clognorm <- function (theta = NULL, link = "identity", base=10) {
+
+  # borrow find dull deviance from mgcv cheat code
+  find.null.dev <- utils::getFromNamespace("find.null.dev", "mgcv")
+
   # first make a copy of mgcv::cnorm by Simon Wood
   cln <- mgcv::cnorm()#theta=theta, link=link)
 
@@ -76,9 +80,9 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       y <- y[,1]
       attr(y,"censor") <- .yat
     }
-    posr$null.deviance <- mgcv:::find.null.dev(family, y,
-                                               eta=linear.predictors, offset,
-                                               prior.weights)
+    posr$null.deviance <- find.null.dev(family, y,
+                                        eta=linear.predictors, offset,
+                                        prior.weights)
     posr$family <- paste("clog", attr(family, "base"),
                          "norm(",round(family$getTheta(TRUE),3),")",sep="")
     posr

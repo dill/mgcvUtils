@@ -1,16 +1,31 @@
 #' Simulating responses from a GAM object
-#' 
-#' @description This method can be used to simulate vectors of responses from a gamObject.
-#' 
-#' @param object the output of a \code{gam()} or \code{bam()} call.
+#'
+#' @description This method can be used to simulate vectors of responses from a
+#' `gamObject`.
+#'
+#' @param object the output of a `gam` or bam()` call.
 #' @param nsim the number of simulated vectors of responses. A positive integer.
 #' @param seed numeric; a random seed for the simulations.
-#' @param method the method used for the simulation. If set to "rd" then \code{o$family$rd()} will be used, if available. If set to "qf" then \code{o$family$qf()} (which is the inverse cdf of the response distribution) will be used to  transform some uniform variates.
-#' @param trans function used to transform or summarize each vector of simulated responses. It must take a vector as argument, but it can output a vector or a scalar. Potentially useful for saving storage (e.g. by transforming each simulated vector to a scalar). If left to \code{NULL} then \code{trans = identity} will be used.
-#' @param newdata Optional new data frame or list to be passed to \link{predict.gam}.
-#' @param u a matrix where each row is a vector of uniform random variables in (0, 1). This will be used to simulate responses only if \code{method = "qf"}. 
-#' @param w vector of prior weights to be used in the simulations. If \code{newdata==NULL} then \code{w} is set to \code{object$prior.weights} otherwise it is a vector of ones.
-#' @param offset numeric vector of offsets. For GAMs with multiple linear predictor (see eg \link{gaulss}) it must be a list of vectors. NB: if \code{newdata!=NULL} the offsets will be assumed to be zero, unless their are explicitly provided. If \code{newdata==NULL} then simulations will use the offsets used during model fitting, and \code{offset} argument will be ignored.
+#' @param method the method used for the simulation. If set to "rd" then
+#' `o$family$rd()` will be used, if available. If set to "qf" then
+#' `o$family$qf()` (which is the inverse cdf of the response distribution)
+#' will be used to  transform some uniform variates.
+#' @param trans function used to transform or summarize each vector of
+#' simulated responses. It must take a vector as argument, but it can output a
+#' vector or a scalar. Potentially useful for saving storage (e.g. by
+#' transforming each simulated vector to a scalar). If left to `NULL` then
+#' `trans = identity` will be used.
+#' @param newdata Optional new data frame or list to be passed to `predict.gam`.
+#' @param u a matrix where each row is a vector of uniform random variables in
+#' (0, 1). This will be used to simulate responses only if `method = "qf"`.
+#' @param w vector of prior weights to be used in the simulations. If
+#' `newdata==NULL` then `w` is set to `object$prior.weights` otherwise it is a
+#' vector of ones.
+#' @param offset numeric vector of offsets. For GAMs with multiple linear
+#' predictor (see e.g., `gaulss`) it must be a list of vectors. NB: if
+#' `newdata!=NULL` the offsets will be assumed to be zero, unless their are
+#' explicitly provided. If `newdata==NULL` then simulations will use the
+#' offsets used during model fitting, and `offset` argument will be ignored.
 #' @param ... currently not used.
 #' @return A matrix where each column is a vector of simulated responses. The number of rows is equal to the number of responses in the fitted object.
 #' @examples
@@ -22,14 +37,12 @@
 #'
 #' # Simulate three vectors of responses
 #' matplot(simulate(b, nsim = 3), pch = 19, col = c(1, 3, 4))
-#'
 #' @importFrom stats simulate
 #' @importFrom plyr raply aaply laply rlply
 #' @importFrom mgcv rmvn
 #' @export simulate.gam
 #' @export
 #' @author based on mgcViz::simulate.gam by Matteo Fasiolo
-#'
 simulate.gam <- function(object, nsim = 1, seed = NULL, method = "auto",
                          newdata, u = NULL, w = NULL, offset = NULL,
                          trans = NULL, ...){

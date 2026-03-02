@@ -21,9 +21,11 @@ Depends:
 Imports:
     plyr,
     dplyr,
+    tibble,
     ggplot2,
     statmod,
     tidyr,
+    utils,
     rlang
 Suggests:
     INLA, 

@@ -25,8 +25,10 @@
 #'     on the specified scale.
 #'
 #' @seealso clognorm
+#' @importFrom tibble as_tibble is_tibble
+#' @importFrom utils getFromNamespace
 #' @export
-#' @rdname fitted_values
+#' @rdname fitted_values_clognorm
 `fitted_values_clognorm` <- function(object,
                                 data = NULL,
                                 scale = c(
@@ -35,8 +37,13 @@
                                   "linear predictor"
                                 ),
                                 ci_level = 0.95, ...) {
+
+  # import unexported functions cheat code
+  delete_response <- utils::getFromNamespace("delete_response", "gratia")
+  coverage_normal <- utils::getFromNamespace("coverage_normal", "gratia")
+
   if (is.null(data)) {
-    data <- gratia:::delete_response(object, model_frame = FALSE) |>
+    data <- delete_response(object, model_frame = FALSE) |>
       as_tibble()
   } else if (!is_tibble(data)) {
     data <- as_tibble(data)
@@ -51,33 +58,30 @@
     newdata = data, ..., type = "response",
     se.fit = TRUE
   ) |>
-    as.data.frame() |>
-    rlang::set_names(c(".fitted", ".se")) |>
-    as_tibble()
+    as.data.frame()
 
-  fit <- fit |>
-    mutate(.fitted = logb(.fitted, base=base))
+  names(fit) <- c(".fitted", ".se")
+  fit <- as_tibble(fit)
+
+  fit$.fitted <- logb(fit[[".fitted"]], base=base)
+
+  fit <- cbind(data, fit)
 
   # add .row *unless* it already exists
-  if (!".row" %in% names(data)) {
-    fit <- mutate(fit, .row = row_number())
+  if (!".row" %in% names(fit)) {
+    fit <- cbind(1:nrow(fit), fit)
   }
-  fit <- bind_cols(data, fit) |>
-    relocate(".row", .before = 1L)
 
   # create the confidence interval
-  crit <- gratia:::coverage_normal(ci_level)
-  fit <- mutate(fit,
-    ".lower_ci" = .data[[".fitted"]] - (crit * .data[[".se"]]),
-    ".upper_ci" = .data[[".fitted"]] + (crit * .data[[".se"]])
-  )
+  crit <- coverage_normal(ci_level)
+  fit <- fit[[".lower_ci"]] <- fit[[".fitted"]] - (crit * fit[[".se"]])
+  fit <- fit[[".upper_ci"]] <- fit[[".fitted"]] + (crit * fit[[".se"]])
 
   # convert to the response scale if requested
   if (identical(scale, "response")) {
-    fit <- fit |>
-      mutate(across(all_of(c(".fitted", ".lower_ci", ".upper_ci")),
-        .fns = trans
-      ))
+    fit[[".lower_ci"]] <- trans(fit[[".lower_ci"]])
+    fit[[".upper_ci"]] <- trans(fit[[".upper_ci"]])
+    fit[[".fitted"]] <- trans(fit[[".fitted"]])
   }
 
   fit

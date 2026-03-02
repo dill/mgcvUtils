@@ -23,7 +23,7 @@
 #' intervals column name
 #' @author David L Miller
 #' @export
-#' @importFrom mgcv predict
+#' @importFrom mgcv predict.gam predict.bam
 #' @examples
 #' library(mgcvUtils)
 #'
