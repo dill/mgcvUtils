@@ -74,8 +74,8 @@
 
   # create the confidence interval
   crit <- coverage_normal(ci_level)
-  fit <- fit[[".lower_ci"]] <- fit[[".fitted"]] - (crit * fit[[".se"]])
-  fit <- fit[[".upper_ci"]] <- fit[[".fitted"]] + (crit * fit[[".se"]])
+  fit[[".lower_ci"]] <- fit[[".fitted"]] - (crit * fit[[".se"]])
+  fit[[".upper_ci"]] <- fit[[".fitted"]] + (crit * fit[[".se"]])
 
   # convert to the response scale if requested
   if (identical(scale, "response")) {
