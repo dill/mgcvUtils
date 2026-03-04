@@ -69,7 +69,7 @@
 
   # add .row *unless* it already exists
   if (!".row" %in% names(fit)) {
-    fit <- cbind(1:nrow(fit), fit)
+    fit <- cbind(.row=1:nrow(fit), fit)
   }
 
   # create the confidence interval
