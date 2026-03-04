@@ -90,7 +90,7 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     posr$family <- paste("clog", attr(family, "base"),
                          "norm(",round(family$getTheta(TRUE),3),")",sep="")
 
-    attr(posr, "n") <- length(y)
+    attr(posr$family, "n") <- length(y)
 
     posr
   } ## postproc
@@ -99,8 +99,6 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
   # note that this is called with predict(..., type="response") ONLY
   cln$predict <- function(family, se=FALSE, eta=NULL, y=NULL, X=NULL,
                           beta=NULL, off=NULL, Vb=NULL) {
-
-
     # get the transformation used
     base <- attr(family, "base")
     base <- if(base=="e") exp(1) else base
@@ -108,7 +106,6 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
     phi <- function(beta, Xp) trans(Xp%*%beta)
 
-    n <- attr(family, "n")
     Vb2 <- Vb %*% Vb
     Vb3 <- Vb2 %*% Vb
 
@@ -121,6 +118,7 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
     # constants
     D3gb <- log(base)^3
+    n <- attr(family$family, "n")
     n1 <- 1/(2*n)
     n12 <- n1*n1
 
