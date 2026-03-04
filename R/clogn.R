@@ -89,6 +89,9 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
                                         prior.weights)
     posr$family <- paste("clog", attr(family, "base"),
                          "norm(",round(family$getTheta(TRUE),3),")",sep="")
+
+    attr(posr, "n") <- length(y)
+
     posr
   } ## postproc
 
@@ -105,7 +108,7 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
     phi <- function(beta, Xp) trans(Xp%*%beta)
 
-    n <- nrow(X)
+    n <- attr(family, "n")
     Vb2 <- Vb %*% Vb
     Vb3 <- Vb2 %*% Vb
 
