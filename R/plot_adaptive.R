@@ -135,7 +135,7 @@ plot_adaptive_2d <- function(model, term=1, bs="ps", m=2, nplot2=100){
   pp <- PredictMat(ps, gr)
 
   # predict
-  gr$pred <- pp%*%b$sp
+  gr$pred <- pp %*% model$sp
 
   # plot
   image(ktsii, ktsjj, matrix(gr$pred, nplot2, nplot2),
