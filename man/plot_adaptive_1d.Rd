@@ -18,7 +18,7 @@ plot_adaptive_1d(model, term = 1, bs = "ps", m = 2, nplot = 100)
 \item{nplot}{number of points used to make the grid for the plot}
 }
 \value{
-just makes a plot
+just makes a plot, invisably returns the data underlying said plot
 }
 \description{
 If we use an adaptive smoother, we can plot $\lambda(x)$ over $x$ to give an
