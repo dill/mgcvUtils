@@ -1,6 +1,6 @@
 Package: mgcvUtils
 Title: Some extra utilities for generalized additive modelling
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: c(
     person("David L", "Miller",
            email = "dave@ninepointeightone.net",
