@@ -42,7 +42,11 @@ on the specified scale.
 }
 \description{
 This is a stand-in replacement for \code{gratia::fitted_values} to be used with
-the clognorm family and make predictions on the response scale.
+the \code{clognorm} family and make predictions on the response scale.
+}
+\details{
+Note that as of \code{gratia} 0.11.2-3 this function is not necessary. This
+function is retained here until there is a \code{gratia} CRAN release.
 }
 \seealso{
 clognorm

@@ -1,7 +1,10 @@
 #' Generate fitted values from a estimated GAM (censored log normal version)
 #'
 #' This is a stand-in replacement for `gratia::fitted_values` to be used with
-#' the clognorm family and make predictions on the response scale.
+#' the `clognorm` family and make predictions on the response scale.
+#'
+#' Note that as of `gratia` 0.11.2-3 this function is not necessary. This
+#' function is retained here until there is a `gratia` CRAN release.
 #'
 #' @param object a fitted model using `clognorm` as the response.
 #' @param data optional data frame of covariate values for which fitted values
@@ -38,6 +41,10 @@
                                 ),
                                 ci_level = 0.95, ...) {
 
+  if(!grepl("clog.+norm(.+)", object$family$family)){
+    stop("Only useful when using a clognorm family.")
+  }
+
   # import unexported functions cheat code
   delete_response <- utils::getFromNamespace("delete_response", "gratia")
   coverage_normal <- utils::getFromNamespace("coverage_normal", "gratia")
@@ -50,9 +57,9 @@
   }
 
   # get the transformation used
-  base <- attr(object$family, "base")
-  base <- if(base=="e") exp(1) else base
-  trans <- if(base=="e") exp else function(x) base^x
+  basec <- attr(object$family, "base")
+  base <- if(basec=="e") exp(1) else basec
+  trans <- if(basec=="e") exp else function(x) base^x
 
   fit <- predict(object,
     newdata = data, ..., type = "response",
@@ -76,6 +83,8 @@
   crit <- coverage_normal(ci_level)
   fit[[".lower_ci"]] <- fit[[".fitted"]] - (crit * fit[[".se"]])
   fit[[".upper_ci"]] <- fit[[".fitted"]] + (crit * fit[[".se"]])
+
+  scale <- match.arg(scale)
 
   # convert to the response scale if requested
   if (identical(scale, "response")) {
