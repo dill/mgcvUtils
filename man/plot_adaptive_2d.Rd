@@ -22,9 +22,8 @@ just makes a plot and invisibly returns the data used to make said
 plot
 }
 \description{
-If we use an adaptive smoother, we can plot $\lambda(x,y)$ over $x,y$ to
-give an idea of how the smoothing parameter changes as a function of the
-covariate.
+If we use an adaptive smoother, we can plot how the smoothing parameter
+changes as a function of the covariates.
 }
 \details{
 This function does not cover all corner cases, your mileage may vary!

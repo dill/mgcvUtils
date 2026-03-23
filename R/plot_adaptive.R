@@ -1,7 +1,7 @@
 #' Plot univariate adaptive smoother penalties
 #'
-#' If we use an adaptive smoother, we can plot $\lambda(x)$ over $x$ to give an
-#' idea of how the smoothing parameter changes as a function of the covariate.
+#' If we use an adaptive smoother, we can plot how the smoothing parameter
+#' changes as a function of the covariate.
 #'
 #' @param model a fitted `mgcv` model
 #' @param term which term number in the model we want to plot
@@ -65,9 +65,8 @@ plot_adaptive_1d <- function(model, term=1, bs="ps", m=2, nplot=100){
 
 #' Plot bivariate adaptive smoother penalties
 #'
-#' If we use an adaptive smoother, we can plot $\lambda(x,y)$ over $x,y$ to
-#' give an idea of how the smoothing parameter changes as a function of the
-#' covariate.
+#' If we use an adaptive smoother, we can plot how the smoothing parameter
+#' changes as a function of the covariates.
 #'
 #' This function does not cover all corner cases, your mileage may vary!
 #'

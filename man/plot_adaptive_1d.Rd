@@ -21,8 +21,8 @@ plot_adaptive_1d(model, term = 1, bs = "ps", m = 2, nplot = 100)
 just makes a plot, invisably returns the data underlying said plot
 }
 \description{
-If we use an adaptive smoother, we can plot $\lambda(x)$ over $x$ to give an
-idea of how the smoothing parameter changes as a function of the covariate.
+If we use an adaptive smoother, we can plot how the smoothing parameter
+changes as a function of the covariate.
 }
 \examples{
 library(mgcv)

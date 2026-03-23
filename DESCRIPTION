@@ -16,7 +16,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
-    R (>= 3.4),
+    R (>= 4.1.0),
     mgcv (>= 1.9-3)
 Imports:
     plyr,
