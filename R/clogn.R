@@ -131,12 +131,13 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
   # note that this is called with predict(..., type="response") ONLY
   cln$predict <- function(family, se=FALSE, eta=NULL, y=NULL, X=NULL,
                           beta=NULL, off=NULL, Vb=NULL) {
+
+
     # get the transformation used
     basee <- attr(family, "base")
     base <- if(basee=="e") exp(1) else base
     trans <- if(basee=="e") exp else function(x) base^x
 
-    phi <- function(beta, Xp) trans(Xp%*%beta)
     # linear predictor
     pred <- X%*%beta
     tpred <- trans(pred)
@@ -152,15 +153,15 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
     # correction vector storage
     corr1 <- var.corr <- pred*0
-
     # needed for standard error calculation only
     if(se){
       # derivatives of g=b^x with respect to parameters for all
       # observations, calculate once
-      # sweep deals with wanting to multiply each row of design matrix
+      # multiply each row of design matrix
       # by its prediction without duplicating tpred and using *
-      Dg <- log(base) * sweep(X, 1, tpred, "*")
-      vv <- diag(tcrossprod(Dg%*%Vb, Dg))/n
+      Dg <- apply(X, 2, \(x) log(base) * x * tpred)
+      #vv <- diag(tcrossprod(Dg%*%Vb, Dg))
+      vv <- pmax(0,rowSums((Dg%*%Vb)*Dg))
 
       # Vb^2
       Vb2 <- Vb %*% Vb
@@ -170,20 +171,39 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # (and se if requested)
     for(i in 1:nrow(X)){
 
+## from mcmc.r
+#devg <- function(b,beta=coef(b),X=model.matrix(b)) {
+### evaluate the deviance of a fitted gam given possibly new coefs, beta
+### for general families this is simply -2*log.lik
+#  if (inherits(b$family,"general.family")) {
+#    -2*b$family$ll(b$y,X,beta,b$prior.weights,b$family,offset=b$offset)$l
+#  } else { ## exp or extended family
+#    sum(b$family$dev.resids(b$y,b$family$linkinv(X%*%beta+b$offset),b$prior.weights))
+#  }
+#} ## devg
+#
+#lpl <- function(b,beta,X, sig2) {
+### log joint density for beta, to within uninteresting constants
+#  -(devg(b,beta,X)/sig2+bSb(b,beta)/sig2)/2
+#}
+#
+#hessfd <- numDeriv::hessian(\(x) lpl(
+
       # calculate correction
       hess <- tcrossprod(X[i, ], X[i, ]) * basemat * tpred[i]
       corr1[i] <- n1 * sum(diag( Vb%*%hess))
+#      corr1[i] <- 1/2 * sum(diag( Vb%*%hess))
 
       # this is probably not very efficient!
       # extra bits needed for standard error calculation
       if(se){
-        hess2 <- crossprod(hess, hess)
         D3g <- kronecker(hess, t(X[i, , drop=FALSE]))
         se.part <- kronecker(diag(length(beta)), Dg[i, ]) %*% Vb2
-        cpHVb <- crossprod(hess, Vb)
+        #cpHVb <- crossprod(hess, Vb)
 
         var.corr[i] <- n12 * sum(diag(D3gb*crossprod(D3g, se.part) -
-                                      crossprod(cpHVb, cpHVb)))
+                        hess %*% Vb %*% hess %*% Vb))
+#                                      crossprod(cpHVb, cpHVb)))
       }
     }
 
