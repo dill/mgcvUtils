@@ -13,6 +13,7 @@ Here are some utilities to use with \code{mgcv}. This page will be populated wit
 
 Authors:
 \itemize{
+  \item David L Miller \email{dave@ninepointeightone.net} (\href{https://orcid.org/0000-0002-9640-6755}{ORCID})
   \item Matteo Fasiolo \email{matteo.fasiolo@gmail.com}
 }
 

@@ -1,3 +1,7 @@
+# 0.0.5
+
+- corrections to the `clognorm` functions down to me getting the maths wrong. Thanks to Matt Speers for pointing out issues that warranted much further investigation. See PDF/LyX in inst/maths/clogn for the fairly painful calculations
+
 # 0.0.4
 
 - *new* `plot_adaptive_1d` and `plot_adaptive_2d` to plot the smoothing parameter as a function of the covariate when doing adaptive smoothing. See https://calgary.converged.yt/articles/adaptive_smoothing.html#bonus-plotting-the-smoothing-parameter-over-the-covariate for more information. Thanks to Philip Dixon for the suggestion.

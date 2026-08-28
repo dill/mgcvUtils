@@ -18,62 +18,72 @@ clognorm(theta = NULL, link = "identity", base = 10)
 }
 \description{
 Implementation of a censored log-normal distribution. This uses \code{mgcv}'s
-built-in \code{cnorm} distribution but includes extra features, such as
-transformation of the response (according to the specified \code{base}) and a
+built-in \code{cnorm} distribution for model fitting. You must include the
+\code{base} used to transform the response as an argument. A
 special \code{predict} function to provide unbiased predicted values using the
-arithmetic mean. Note that this merely fits using \code{cnorm} and includes
+arithmetic mean and to account for bias incurred from random effects.
 post-hoc transformations to give "correct" results. See [\link[mgcv:cnorm]{mgcv::cnorm}] for
 more information on how to specify censoring.
+}
+\details{
+Further mathematical details are given in the \verb{inst/maths/} directory of
+this package.
 }
 \examples{
 library(mgcv)
 library(mgcvUtils)
 library(ggplot2)
 
-# make a 1D example with less noise
-set.seed(42)
+devtools::load_all()
+# make a 1D example
+set.seed(123)
 
-# simulated example from ?gam
-dat <- gamSim(1, n=200, dist="normal", scale=1)
+# simulated example from gam
+data <- gamSim(1, n = 400, dist = "normal", scale = 1)
 
-e <- rnorm(nrow(dat), sd=2)
-dat$y2 <- 10^(dat$f2/10 + e)
+noise <- rnorm(nrow(data), sd = 0.1)
+data$y2 <- 10^(data$f2 / 10 + noise)
 
 # censor values below some value
-dat$y2 <- cbind(dat$y2, dat$y2)
-# indicate which values are censored, see ?cnorm for rules
-dat$y2[dat$y2[, 1] < 0.01, 2] <- -Inf
-dat$y2[dat$y2[, 1] < 0.01, 1] <- 0.01
+data$y2 <- cbind(data$y2, data$y2)
 
-# response will be transformed by clognorm before fitting
-b2 <- gam(y2~s(x2), data=dat, method="REML", family=clognorm(base=10))
+# indicate which values are censored, see ?cnorm for rules
+cen_level <- 0.5
+data$y2[data$y2[, 1] < cen_level, 2] <- -Inf
+data$y2[data$y2[, 1] < cen_level, 1] <- cen_level
+
+b2 <- gam(y2~s(x2), data=data, method="REML", family=clognorm(base=10))
 summary(b2)
 
-# compare predictions (on a random subset of the data)
-pred <- dat[sample(1:nrow(dat), 100), ]
-pred$y2 <- NULL
-# uncorrected
+# compare plotted predictions on the response scale
+# create prediction data
+pred <- data.frame(x2=seq(min(data$x2), max(data$x2), length.out=300))
+
+# uncorrected (on link scale)
 old <- predict(b2, newdata=pred, se=TRUE)
 # corrected (must use type="response")
 new <- predict(b2, newdata=pred, type="response", se=TRUE)
 
-preddat <- data.frame(pred.old = 10^old$fit,
-                      pred.cor = new$fit,
-                      pred.upper.old = 10^(old$fit + 1.96*old$se.fit),
-                      pred.upper.cor = 10^(log10(new$fit) + 1.96*new$se.fit),
-                      pred.lower.old = 10^(old$fit - 1.96*old$se.fit),
-                      pred.lower.cor = 10^(log10(new$fit) - 1.96*new$se.fit))
+# make data for the plot
+predict_df <- data.frame(
+  x = rep(pred$x2, 2),
+  pred = c(10^old$fit, new$fit),
+  ci_lower = c(10^(old$fit - 1.96*old$se.fit),
+               new$fit - 1.96*new$se.fit),
+  ci_upper = c(10^(old$fit + 1.96*old$se.fit),
+               new$fit + 1.96*new$se.fit),
+  model = rep(c("cnorm", "clognorm"), each=nrow(pred)))
 
-# compare by plot
-ggplot(preddat) +
-  geom_point(aes(x=pred.old, y=pred.cor)) +
-  geom_segment(aes(x=pred.lower.old, xend=pred.upper.old,
-                   y=pred.cor, yend=pred.cor)) +
-  geom_segment(aes(y=pred.lower.cor, yend=pred.upper.cor,
-                   x=pred.old, xend=pred.old)) +
-  geom_abline(intercept=0, slope=1, colour="red", lty=2) +
-  labs(x="Uncorrected predictions", y="Corrected predictions") +
-  theme_minimal()
+# create plot
+p <- ggplot(predict_df, aes(x=x)) +
+  geom_point(aes(x=x2, y=10^y2[,1]), data=data) +
+  geom_ribbon(aes(ymin=ci_lower, ymax=ci_upper, fill=model),
+              alpha=0.2) +
+  geom_line(aes(y=pred, colour=model)) +
+  scale_y_continuous(trans="log10") +
+  labs(x="x2", y="Predictions on response scale") +
+  theme_bw()
+print(p)
 }
 \author{
 David L Miller with code modified from mgcv by Simon Wood

@@ -1,6 +1,6 @@
 Package: mgcvUtils
 Title: Some extra utilities for generalized additive modelling
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: c(
     person("David L", "Miller",
            email = "dave@ninepointeightone.net",
@@ -14,7 +14,6 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends:
     R (>= 4.1.0),
     mgcv (>= 1.9-3)
@@ -30,3 +29,4 @@ Imports:
 Suggests:
     INLA, 
     MASS
+Config/roxygen2/version: 8.1.0
