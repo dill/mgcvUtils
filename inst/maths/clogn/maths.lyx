@@ -231,15 +231,6 @@ to indicate logarithm to the base
 \end_inset
 
 .
- This is equivalent to defining a variable 
-\begin_inset Formula $Z=b^{Y}$
-\end_inset
-
- where 
-\begin_inset Formula $Z\sim N(\mu_{*},\sigma_{*}^{2})$
-\end_inset
-
-.
  The log-normal distribution is useful in cases where 
 \begin_inset Formula $Y$
 \end_inset
@@ -281,7 +272,8 @@ Arithmetic versus geometric means
 \end_layout
 
 \begin_layout Standard
-We can estimate estimate the expectation of 
+Starting out by thinking only about the natural logarithm case,
+ we can estimate the expectation of 
 \begin_inset Formula $\mathbb{E}(Y)$
 \end_inset
 
@@ -303,11 +295,16 @@ geometric
 
 ,
  respectively).
- These are defined as:
+ When we use a natural logarithm (
+\begin_inset Formula $e$
+\end_inset
+
+),
+ these are defined as:
 \begin_inset Formula 
 \begin{align}
-\mathbb{E}_{A}(Y) & =b^{\mu+\frac{1}{2}\sigma^{2}}\quad\text{and}\label{eq:arithmean}\\
-\mathbb{E}_{G}(Y) & =b^{\mu}.\nonumber 
+\mathbb{E}_{A}(Y) & =e^{\mu+\frac{1}{2}\sigma^{2}}\quad\text{and}\label{eq:arithmean}\\
+\mathbb{E}_{G}(Y) & =e^{\mu}.\nonumber 
 \end{align}
 
 \end_inset
@@ -627,7 +624,44 @@ Similarly,
  
 \begin_inset Formula 
 \begin{align*}
-\text{SD}_{A}(Y) & =b^{\mu+\frac{1}{2}\sigma^{2}}\sqrt{b^{\sigma^{2}}-1}\\
+\text{SD}_{A}(Y) & =e^{\mu+\frac{1}{2}\sigma^{2}}\sqrt{e^{\sigma^{2}}-1}\\
+\text{SD}_{G}(Y) & =e^{\sigma}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In the more general case where we have a base 
+\begin_inset Formula $b$
+\end_inset
+
+ logarithm,
+ we have that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+\mathbb{E}_{A}(Y) & =b^{\mu+\frac{1}{2}\sigma^{2}\log_{e}b}\quad\text{and}\label{eq:arithmean-1}\\
+\mathbb{E}_{G}(Y) & =b^{\mu}.\nonumber 
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\text{SD}_{A}(Y) & =b^{\mu+\frac{1}{2}\sigma^{2}\log_{e}b}\sqrt{b^{\sigma^{2}\log_{e}b}-1}\\
 \text{SD}_{G}(Y) & =b^{\sigma}.
 \end{align*}
 
@@ -945,6 +979,36 @@ Histograms of the data generated in the linear model example.
 
 \end_layout
 
+\begin_layout Subsection
+Bias correction for random effects models
+\end_layout
+
+\begin_layout Standard
+As noted by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_implementing_2016"
+literal "false"
+
+\end_inset
+
+ (and references therein) when random effects are used alongside non-linear transformations such as logarithms,
+ we can incur a bias due to that transformation.
+ This correction is of the order of the inverse of the sample size,
+ so will become negligible at larger sample sizes.
+ Since splines are just highly structured random effects 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "miller_bayesian_2025"
+literal "false"
+
+\end_inset
+
+,
+ we need to ensure that we take this bias correction into account.
+ This can be especially important when making aggregate predictions on the response scale (for example when summing over areas) and when the response distribution is skewed (one of the primary use cases of the log-normal distribution).
+\end_layout
+
 \begin_layout Section
 Censored normal modelling
 \end_layout
@@ -1015,11 +1079,7 @@ Data takes the form of a triplet:
 \begin_inset Formula $y\leq C)$
 \end_inset
 
- and 
-\begin_inset Formula $1$
-\end_inset
-
- otherwise.
+ and 0 otherwise.
  Since we do not know the value of 
 \begin_inset Formula $y$
 \end_inset
@@ -1257,10 +1317,25 @@ Combining approaches:
 \end_layout
 
 \begin_layout Standard
-We can combine these approaches using a geometric mean by simply combining the approach for modelling log-normal data described in Section 
+We can combine the above approaches to allow for censored log-normal predictions of the arithmetic mean using a GAM while also correcting for bias incurred by the random effects.
+ As such,
+ we have three components to our model:
+\end_layout
+
+\begin_layout Enumerate
+
+\family typewriter
+cnorm()
+\family default
+-based fitting of the model on the log-normally distributed data;
+\end_layout
+
+\begin_layout Enumerate
+correction to use the arithmetic mean,
+ following 
 \begin_inset CommandInset ref
 LatexCommand eqref
-reference "subsec:lognormalGAM"
+reference "eq:arithmean-1"
 plural "false"
 caps "false"
 noprefix "false"
@@ -1268,28 +1343,27 @@ nolink "false"
 
 \end_inset
 
- with the use of the censored normal distribution.
- In practice,
- that merely consists of using 
-\family typewriter
-mgcv::cnorm
-\family default
- with the log-normally-distributed data.
+;
+\end_layout
+
+\begin_layout Enumerate
+bias correction from the random effects per 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_implementing_2016"
+literal "false"
+
+\end_inset
+
+ derived in the Appendix of this document.
 \end_layout
 
 \begin_layout Standard
-We can post hoc correct predictions to use the arithmetic mean using a multivariate version of the correction in 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:arithmean"
-plural "false"
-caps "false"
-noprefix "false"
-nolink "false"
-
-\end_inset
-
-.
+We can apply 2 and 3 via 
+\shape italic
+post hoc
+\shape default
+ corrections to the predictions.
  These corrections lead to the following expressions:
 \end_layout
 
@@ -1297,16 +1371,18 @@ nolink "false"
 \begin_inset Formula 
 \begin{align}
 \mathbb{E}\left[g\left(\hat{\boldsymbol{\beta}}\right)\right] & =g\left(\hat{\boldsymbol{\beta}}\right)+\frac{1}{2n}\text{trace}\left(D^{2}g(\hat{\boldsymbol{\beta}})\Sigma\right)\quad\text{and}\nonumber \\
-\hat{\text{Var}}\left[g\left(\hat{\boldsymbol{\beta}}\right)\right] & =\frac{1}{n}\left[Dg(\boldsymbol{\beta})\right]{}^{T}\Sigma(Dg(\boldsymbol{\beta}))+\frac{1}{2n^{2}}\text{trace}\left(D^{3}g(\boldsymbol{\beta})D^{2}g(\boldsymbol{\beta})\Sigma^{2}-\left[D^{2}g(\boldsymbol{\beta})\Sigma\right]^{2}\right)\label{eq:final-expect-var-1}
+\hat{\text{Var}}\left[g\left(\hat{\boldsymbol{\beta}}\right)\right] & =(Dg\left(\hat{\boldsymbol{\beta}}\right))^{T}\Sigma(Dg\left(\hat{\boldsymbol{\beta}}\right))/n=\frac{1}{2n^{2}}\text{trace}\Biggl(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})−D^{2}g(\hat{\boldsymbol{\beta}})\right)\right]^{2}\label{eq:final-expect-var-1}\\
+ & \;\;\;-\Sigma\left(D^{4}h(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})+D^{3}h(\hat{\boldsymbol{\beta}})\left[\Sigma\left(2D^{2}g(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})-D^{3}h(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})\right)\right]−2D^{3}g(\hat{\boldsymbol{\beta}})\Sigma Dg(\hat{\boldsymbol{\beta}})\right)\Biggr)
 \end{align}
 
 \end_inset
 
 where 
-\begin_inset Formula $g(\boldsymbol{\beta})=b^{X\boldsymbol{\beta}}$
+\begin_inset Formula $g(\boldsymbol{\beta})=b^{X\boldsymbol{\beta}+\frac{1}{2}\sigma^{2}\log_{e}b}$
 \end_inset
 
- if 
+ (the arithmetic mean expression).
+ Then 
 \begin_inset Formula $b$
 \end_inset
 
@@ -1314,7 +1390,7 @@ where
 \begin_inset Formula $X$
 \end_inset
 
- is the design matrix for our model.
+ is the design matrix for our predictions.
  
 \begin_inset Formula $D$
 \end_inset
@@ -1330,14 +1406,23 @@ where
 
  giving that order of derivative.
  
-\begin_inset Formula $\Sigma$
+\begin_inset Formula $\mathbf{V}_{\boldsymbol{\beta}}=\Sigma/n$
 \end_inset
 
  is the posterior covariance matrix for 
 \begin_inset Formula $\boldsymbol{\beta}$
 \end_inset
 
- (see,
+ (
+\begin_inset Formula $\mathbf{V}_{\boldsymbol{\beta}}$
+\end_inset
+
+ is provided by 
+\family typewriter
+mgcv::vcov
+\family default
+;
+ see,
  e.g.
  
 \begin_inset CommandInset citation

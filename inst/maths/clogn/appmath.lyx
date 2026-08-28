@@ -1,0 +1,991 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\begin_modules
+knitr
+\end_modules
+\maintain_unincluded_children no
+\language english
+\language_package default
+\inputencoding auto-legacy
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\biblio_options round
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 3cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Section*
+\begin_inset Quotes eld
+\end_inset
+
+Thorson's
+\begin_inset Quotes erd
+\end_inset
+
+ epsilon correction
+\end_layout
+
+\begin_layout Standard
+The core of the REML/ML methods implemented in 
+\family typewriter
+mgcv
+\family default
+ is Laplace-approximate maximum likelihood (LAML).
+ In the case where Laplace approximations are used,
+ we can use the correction 
+\begin_inset Quotes eld
+\end_inset
+
+proposed
+\begin_inset Quotes erd
+\end_inset
+
+ by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_implementing_2016"
+literal "false"
+
+\end_inset
+
+ and elaborated on in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_spatiotemporal_2024"
+literal "false"
+
+\end_inset
+
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Note that there are a couple of mathematical errors in both of these sources.
+\end_layout
+
+\end_inset
+
+.
+ Scare quotes are used here as the correction is based on 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+,
+ from their Theorem 2.
+ They propose estimators for the expectation and variance of some function 
+\begin_inset Formula $g$
+\end_inset
+
+ of the model parameters (
+\begin_inset Formula $\hat{\theta}$
+\end_inset
+
+) when a model is estimated using a Laplace approximation.
+ 
+\end_layout
+
+\begin_layout Standard
+We can generally write the expectation as:
+ 
+\begin_inset Formula 
+\begin{equation}
+\mathbb{E}\left[g(\theta)\right]=\frac{\int g(\theta)L(\theta)\pi(\theta)d\theta}{\int L(\theta)\pi(\theta)d\theta}.\label{eq:expect1}
+\end{equation}
+
+\end_inset
+
+As usual 
+\begin_inset Formula $L(\theta)$
+\end_inset
+
+ is the likelihood and 
+\begin_inset Formula $\pi(\theta)$
+\end_inset
+
+ is the prior on parameter 
+\begin_inset Formula $\theta$
+\end_inset
+
+.
+ We can write 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:expect1"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ in the following form (equation 2.2 in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+):
+\begin_inset Formula 
+\begin{equation}
+\mathbb{E}\left[g(\theta)\right]=\frac{\int b_{N}(\theta)\exp\left[-nh_{N}(\theta)\right]d\theta}{\int b_{D}(\theta)\exp\left[-nh_{D}(\theta)\right]d\theta},\label{eq:expect1-1}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $N$
+\end_inset
+
+ and 
+\begin_inset Formula $D$
+\end_inset
+
+ denote the numerator and denominator versions of the functions,
+ respectively.
+ We can see that our problem fits into the 
+\begin_inset Quotes eld
+\end_inset
+
+standard form
+\begin_inset Quotes erd
+\end_inset
+
+ where 
+\begin_inset Formula $b_{N}(\theta)=g(\theta)$
+\end_inset
+
+,
+ 
+\begin_inset Formula $b_{D}(\theta)=1$
+\end_inset
+
+ and 
+\begin_inset Formula $h_{N}(\theta)=h_{D}(\theta)=-(1/n)\log_{e}\left[L(\theta)\pi(\theta)\right]$
+\end_inset
+
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "tierney_accurate_1986"
+literal "false"
+
+\end_inset
+
+,
+ however 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+ also introduce the 
+\begin_inset Quotes eld
+\end_inset
+
+exponential form
+\begin_inset Quotes erd
+\end_inset
+
+,
+ which we will use below.
+ 
+\end_layout
+
+\begin_layout Standard
+Analysis proceeds by looking at 
+\begin_inset Formula $\mathbb{E}\left\{ \exp[sg(\theta)]\right\} $
+\end_inset
+
+ (the moment generating function).
+ Plugging these values in and taking derivatives will yield Theorem 2 of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+ (see paper for fine details on this):
+\begin_inset Formula 
+\begin{align}
+\mathbb{E}\left[g\left(\hat{\theta}\right)\right] & =g\left(\hat{\theta}\right)+\frac{d}{ds}\log_{e}\sigma_{s}\vert_{s=0}+\frac{d}{ds}\log_{e}b(\theta_{s})\vert_{s=0}\quad\text{and}\nonumber \\
+\hat{\text{Var}}\left[g\left(\hat{\theta}\right)\right] & =\left[\sigma g^{\prime}\left(\hat{\theta}\right)\right]^{2}/n+\frac{d^{2}}{ds^{2}}\log_{e}\sigma_{s}\vert_{s=0}+\frac{d^{2}}{ds^{2}}\log_{e}b(\theta_{s})\vert_{s=0}.\label{eq:theorem2}
+\end{align}
+
+\end_inset
+
+This is equivalent to expressions 2e and 2f in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_implementing_2016"
+literal "false"
+
+\end_inset
+
+ and equation 6.8 in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_spatiotemporal_2024"
+literal "false"
+
+\end_inset
+
+.
+ Note that this is only for the case where we have parameter,
+ 
+\begin_inset Formula $\theta$
+\end_inset
+
+,
+ to estimate.
+ In the case of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+,
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_implementing_2016"
+literal "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_spatiotemporal_2024"
+literal "false"
+
+\end_inset
+
+ the multivariate case is alluded to,
+ but not fully expanded.
+ The rest of the appendix derives this for the specific log-normal case.
+\end_layout
+
+\begin_layout Subsection*
+Extending to the multivariate case
+\end_layout
+
+\begin_layout Standard
+In the above,
+ we are only looking at univariate 
+\begin_inset Formula $\theta$
+\end_inset
+
+,
+ we need to extend to the multivariate case.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+ state (in the proof of Theorem 2):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Quotes eld
+\end_inset
+
+
+\shape italic
+In the multivariate statement of the theorem,
+ 
+\begin_inset Formula $\sigma_{s}$
+\end_inset
+
+ would be replaced by 
+\begin_inset Formula $\det\left(\Sigma_{s}\right)^{1/2}$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $\Sigma_{s}=\left[D^{2}h_{s}\vert_{\boldsymbol{\theta}_{s}}\right]^{-1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\left[\sigma g^{\prime}(\theta)\right]^{2}$
+\end_inset
+
+ would be replaced by 
+\begin_inset Formula $(Dg)^{T}\Sigma(Dg)$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $Dg$
+\end_inset
+
+ is the derivative of 
+\begin_inset Formula $g$
+\end_inset
+
+ [with respect to 
+\begin_inset Formula $\boldsymbol{\theta}$
+\end_inset
+
+] evaluated at 
+\begin_inset Formula $\hat{\boldsymbol{\theta}}$
+\end_inset
+
+ and 
+\begin_inset Formula $\Sigma=\left[D^{2}h\vert_{\hat{\boldsymbol{\theta}}}\right]^{-1}$
+\end_inset
+
+.
+\shape default
+
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that here 
+\begin_inset Formula $nh_{s}(\boldsymbol{\theta})=nh(\boldsymbol{\theta})-sg(\boldsymbol{\theta})$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Doing the suggested substitution and letting 
+\begin_inset Formula $b(\boldsymbol{\theta})=1$
+\end_inset
+
+,
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:theorem2"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ becomes 
+\begin_inset Formula 
+\begin{align}
+\mathbb{E}\left[g\left(\hat{\boldsymbol{\theta}}\right)\right] & =g\left(\hat{\boldsymbol{\theta}}\right)+\frac{d}{ds}\log_{e}\det\left(\Sigma_{s}\right)^{1/2}\vert_{s=0}\quad\text{and}\nonumber \\
+\hat{\text{Var}}\left[g\left(\hat{\boldsymbol{\theta}}\right)\right] & =(Dg)^{T}\Sigma(Dg)/n+\left.\frac{d^{2}}{ds^{2}}\log_{e}\det\left(\Sigma_{s}\right)^{1/2}\right|_{s=0}.\label{eq:theorem2-1}
+\end{align}
+
+\end_inset
+
+Note that the last term in each equation evaluates to zero since 
+\begin_inset Formula $b(\boldsymbol{\theta})=1$
+\end_inset
+
+ (per above) and hence has no derivatives.
+\end_layout
+
+\begin_layout Subsubsection*
+Finding 
+\begin_inset Formula $\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To find quantities such as 
+\begin_inset Formula $\frac{d}{ds}h(\boldsymbol{\theta}_{s})$
+\end_inset
+
+ we need to find 
+\begin_inset Formula $\frac{d\boldsymbol{\theta}_{s}}{ds}$
+\end_inset
+
+ (since the resulting derivative is 
+\begin_inset Formula $h^{\prime}(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}$
+\end_inset
+
+,
+ by the chain rule).
+ We will generally evaluate that expression at 
+\begin_inset Formula $s=0$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+By analogy to equation 3.8 in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+,
+ we find
+\begin_inset Formula 
+\begin{align*}
+0 & =\frac{\partial f}{\partial\boldsymbol{\theta}}\vert_{\boldsymbol{\theta}_{s},s}=\frac{\partial}{\partial\boldsymbol{\theta}}\left[nh(\boldsymbol{\theta})-sg(\boldsymbol{\theta})\right]\vert_{\boldsymbol{\theta}_{s},s}\\
+ & =n\frac{\partial}{\partial\boldsymbol{\theta}}h(\boldsymbol{\theta}_{s})-s\frac{\partial}{\partial\boldsymbol{\theta}}g(\boldsymbol{\theta}_{s}).
+\end{align*}
+
+\end_inset
+
+Then taking derivatives wrt 
+\begin_inset Formula $s$
+\end_inset
+
+ at 
+\begin_inset Formula $s=0$
+\end_inset
+
+,
+ we have
+\begin_inset Formula 
+\begin{align*}
+0 & =\frac{d}{ds}\left[n\frac{\partial}{\partial\boldsymbol{\theta}}h(\boldsymbol{\theta}_{s})-s\frac{\partial}{\partial\boldsymbol{\theta}}g(\boldsymbol{\theta}_{s})\right]\vert_{s=0}\\
+ & =nD^{2}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-\frac{\partial}{\partial\boldsymbol{\theta}}g(\hat{\boldsymbol{\theta}})\\
+\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0} & =\frac{1}{n}\left[D^{2}h(\hat{\boldsymbol{\theta}})\right]^{-1}\frac{\partial}{\partial\boldsymbol{\theta}}g(\hat{\boldsymbol{\theta}})\\
+ & =\frac{1}{n}\Sigma\frac{\partial}{\partial\boldsymbol{\theta}}g(\hat{\boldsymbol{\theta}})\\
+ & =\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}}).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Finding 
+\begin_inset Formula $\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finding the second derivatives we use the same setup and evaluate
+\begin_inset Formula 
+\begin{align*}
+0 & =\frac{d^{2}}{ds^{2}}\left[n\frac{\partial}{\partial\boldsymbol{\theta}}h(\boldsymbol{\theta}_{s})-s\frac{\partial}{\partial\boldsymbol{\theta}}g(\boldsymbol{\theta}_{s})\right]\vert_{s=0}\\
+ & =\frac{d}{ds}\left[nD^{2}h(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}-\frac{\partial}{\partial\boldsymbol{\theta}}g(\boldsymbol{\theta}_{s})-sD^{2}g(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\right]\vert_{s=0}\\
+ & =n\frac{d}{ds}D^{2}h(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-\frac{d}{ds}\frac{\partial}{\partial\boldsymbol{\theta}}g(\boldsymbol{\theta}_{s})\vert_{s=0}-\frac{d}{ds}\left(sD^{2}g(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\right)\vert_{s=0}\\
+ & =n\frac{d}{ds}D^{2}h(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-\left(D^{2}g(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}+\cancelto{0}{s\frac{d}{ds}D^{2}g(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}}\right)\\
+ & =n\left(\frac{dD^{2}h(\boldsymbol{\theta}_{s})}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}+D^{2}h(\hat{\boldsymbol{\theta}})\frac{d}{ds}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\right)-D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-D^{2}g(\boldsymbol{\theta}_{s})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\\
+ & =nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}+nD^{2}h(\hat{\boldsymbol{\theta}})\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0}-2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\\
+-nD^{2}h(\hat{\boldsymbol{\theta}})\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0} & =nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\\
+D^{2}h(\hat{\boldsymbol{\theta}})\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0} & =\frac{1}{n}\left(2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\right)\\
+\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0} & =\frac{1}{n}D^{2}h(\hat{\boldsymbol{\theta}})^{-1}\left(2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\right)\\
+ & =\frac{1}{n}\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\right)
+\end{align*}
+
+\end_inset
+
+Finally substituting 
+\begin_inset Formula $\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}=\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})$
+\end_inset
+
+ yields:
+\begin_inset Formula 
+\begin{align*}
+\frac{d^{2}\boldsymbol{\theta}_{s}}{ds^{2}}\vert_{s=0} & =\frac{1}{n}\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}-nD^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\right)\\
+ & =\frac{1}{n}\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})-nD^{3}h(\hat{\boldsymbol{\theta}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\\
+ & =\frac{1}{n^{2}}\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})-D^{3}h(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since
+\begin_inset Formula $D^{3}h(\hat{\boldsymbol{\theta}})$
+\end_inset
+
+ is a 3-tensor (3 dimensional array),
+ we note explicitly that 
+\begin_inset Formula $D^{3}h(\hat{\boldsymbol{\theta}})\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}\frac{d\boldsymbol{\theta}_{s}}{ds}\vert_{s=0}$
+\end_inset
+
+ has the contraction 
+\begin_inset Formula 
+\[
+D^{3}h(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})=(\left[D^{3}h(\hat{\boldsymbol{\theta}})\right]\left[\Sigma Dg(\hat{\boldsymbol{\theta}})\right]_{k}\left[\Sigma Dg(\hat{\boldsymbol{\theta}})\right]_{l}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Finding the derivatives of 
+\begin_inset Formula $\log_{e}\det\left(\Sigma_{s}\right)^{1/2}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+First derivatives are needed for the expectation:
+\begin_inset Formula 
+\begin{align*}
+\frac{d}{ds}\log_{e}\left[\det\left(\Sigma_{s}\right)^{1/2}\right]\vert_{s=0} & =\frac{\frac{d}{ds}\det\left(\Sigma_{s}\right)^{1/2}\vert_{s=0}}{\det\left(\Sigma\right)^{1/2}}\\
+ & =\frac{1/2\det\left(\Sigma\right)^{-1/2}\frac{d}{ds}\det\Sigma_{s}\vert_{s=0}}{\det\left(\Sigma\right)^{1/2}}\\
+ & =1/2\det\left(\Sigma_{}\right)^{-1}\frac{d}{ds}\det\Sigma_{s}\vert_{s=0}\\
+ & =1/2\det\left(\Sigma\right)^{-1}\det\Sigma_{}\text{trace}\left(\Sigma^{-1}\frac{d}{ds}\Sigma_{s}\vert_{s=0}\right)\\
+ & =1/2\text{trace}\left(\Sigma^{-1}\frac{d}{ds}\Sigma_{s}\vert_{s=0}\right)\\
+ & =1/2\text{trace}\left(\Sigma^{-1}\frac{d}{ds}\left[D^{2}h_{s}\vert_{\boldsymbol{\theta}_{s}}\right]^{-1}\vert_{s=0}\right)\\
+ & =-1/2\text{trace}\left(\Sigma^{-1}\left[D^{2}h_{s}\vert_{\boldsymbol{\theta}_{s}}\right]^{-1}\frac{d}{ds}\left[D^{2}h(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}-\frac{s}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right]\vert_{s=0}\left[D^{2}h_{s}\vert_{\boldsymbol{\theta}_{s}}\right]^{-1}\right)\\
+ & =-1/2\text{trace}\left(\Sigma^{-1}\Sigma\frac{d}{ds}\left[D^{2}h(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}-\frac{s}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right]\vert_{s=0}\Sigma\right)\\
+ & =-1/2\text{trace}\left(\frac{d}{ds}\left[D^{2}h(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}-\frac{s}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right]\vert_{s=0}\Sigma\right)\\
+ & =-1/2\text{trace}\left(\left[D^{3}h(\boldsymbol{\theta})\frac{d\boldsymbol{\theta}_{s}}{ds}-\frac{d}{ds}\left(\frac{s}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right)\vert_{s=0}\right]\Sigma\right)\\
+ & =-1/2\text{trace}\left(\left[D^{3}h(\boldsymbol{\theta})\frac{1}{n}Dg(\boldsymbol{\theta})\Sigma-\frac{d}{ds}\left(\frac{s}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right)\vert_{s=0}\right]\Sigma\right)\\
+ & =-1/2\text{trace}\left(\left[D^{3}h(\boldsymbol{\theta})\frac{1}{n}Dg(\boldsymbol{\theta})\Sigma-\left(\left(\frac{d}{ds}\frac{s}{n}\vert_{s=0}\right)D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}+\frac{s}{n}\left(\frac{d}{ds}D^{2}g(\boldsymbol{\theta})\vert_{s=0}\right)\vert_{\boldsymbol{\theta}_{s}}\right)\right]\Sigma\right)\\
+ & =-1/2\text{trace}\left(\left[D^{3}h(\boldsymbol{\theta})\frac{1}{n}Dg(\boldsymbol{\theta})\Sigma-\left(\left(\frac{d}{ds}\frac{s}{n}\vert_{s=0}\right)D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right)\right]\Sigma\right)\\
+ & =-1/2\text{trace}\left(\left[\frac{1}{n}D^{3}h(\boldsymbol{\theta})Dg(\boldsymbol{\theta})\Sigma-\frac{1}{n}D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\right]\Sigma\right)\\
+ & =\frac{1}{2n}\text{trace}\left(D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\Sigma-D^{3}h(\boldsymbol{\theta})[\Sigma,\Sigma Dg]\right)
+\end{align*}
+
+\end_inset
+
+This is analogous to the expression given in equation 6.8 in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "thorson_spatiotemporal_2024"
+literal "false"
+
+\end_inset
+
+ and the final expression in section 3.1 in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "tierney_fully_1989"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We note that 
+\begin_inset Formula $D^{3}h(\boldsymbol{\theta})$
+\end_inset
+
+ forms a 3D tensor (a 3 dimensional array of derivatives).
+ As such,
+ we use the contraction such that 
+\begin_inset Formula $D^{3}h(\boldsymbol{\theta})[\Sigma,\Sigma Dg]=T_{jkl}\Sigma_{jk}(\Sigma Dg)_{l}$
+\end_inset
+
+ where subscripts on the right hand side indicate the indices in the three dimensions 
+\begin_inset Formula $j,k,l$
+\end_inset
+
+.
+ If 
+\begin_inset Formula $h(\boldsymbol{\theta})$
+\end_inset
+
+ were just a normal distribution this term would be zero,
+ as the PDF of a normal distribution does not have third derivatives.
+ However,
+ here we have a log-normal distribution so those derivatives do exist.
+\end_layout
+
+\begin_layout Standard
+For the variance expression,
+ we need to also evaluate 
+\begin_inset Formula $\frac{d^{2}}{ds^{2}}\log_{e}\det\left(\Sigma_{s}\right)^{1/2}$
+\end_inset
+
+.
+ We begin by writing:
+\begin_inset Formula 
+\[
+A(s)=D^{2}h(\boldsymbol{θ}_{s})−\frac{s}{n}D^{2}g(\boldsymbol{θ}_{s}),
+\]
+
+\end_inset
+
+note that then 
+\begin_inset Formula $Σ_{s}=A(s)^{-1}$
+\end_inset
+
+.
+ Taking the first derivative of 
+\begin_inset Formula $A(s)$
+\end_inset
+
+ with respect to 
+\begin_inset Formula $s$
+\end_inset
+
+ we obtain:
+\begin_inset Formula 
+\begin{align*}
+\frac{dA(s)}{ds} & =\frac{d}{ds}D^{2}h(\boldsymbol{θ}_{s})−\frac{d}{ds}\frac{s}{n}D^{2}g(\boldsymbol{θ}_{s})\\
+ & =D^{3}h(\boldsymbol{θ}_{s})\frac{d\boldsymbol{θ}_{s}}{ds}−\frac{d}{ds}\frac{s}{n}D^{2}g(\boldsymbol{θ}_{s})\\
+ & =D^{3}h(\boldsymbol{θ}_{s})\frac{d\boldsymbol{θ}_{s}}{ds}−\left(\frac{1}{n}D^{2}g(\boldsymbol{θ}_{s})+\frac{s}{n}\frac{d}{ds}D^{2}g(\boldsymbol{θ}_{s})\right)\\
+ & =D^{3}h(\boldsymbol{θ}_{s})\frac{d\boldsymbol{θ}_{s}}{ds}−\frac{1}{n}D^{2}g(\boldsymbol{θ}_{s})-\frac{s}{n}D^{3}g(\boldsymbol{θ}_{s})\frac{d\boldsymbol{θ}_{s}}{ds}.
+\end{align*}
+
+\end_inset
+
+And now the second derivative of 
+\begin_inset Formula $A(s)$
+\end_inset
+
+ with respect to 
+\begin_inset Formula $s$
+\end_inset
+
+ and letting 
+\begin_inset Formula $\boldsymbol{\theta}_{s}^{\prime}=\frac{d\boldsymbol{θ}_{s}}{ds}$
+\end_inset
+
+ and 
+\begin_inset Formula $\boldsymbol{\theta}_{s}^{\prime\prime}=\frac{d^{2}\boldsymbol{θ}_{s}}{ds^{2}}$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align*}
+\frac{d^{2}A(s)}{ds^{2}} & =\frac{d}{ds}\left[D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}−\frac{1}{n}D^{2}g(\boldsymbol{θ}_{s})-\frac{s}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\right]\\
+ & =\frac{d}{ds}\left(D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\right)−\frac{d}{ds}\frac{1}{n}D^{2}g(\boldsymbol{θ}_{s})-\frac{d}{ds}\frac{s}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\\
+ & =D^{4}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\boldsymbol{\theta}_{s}^{\prime}+D^{3}h(\boldsymbol{θ}_{s})D^{2}\boldsymbol{\theta}_{s}−\frac{1}{n}D^{3}g(\boldsymbol{θ}_{s})D\boldsymbol{\theta}_{s}-\left[\frac{1}{n}D^{3}g(\boldsymbol{θ}_{s})D\boldsymbol{\theta}_{s}+\frac{s}{n}\frac{d}{ds}\left(D^{3}g(\boldsymbol{θ}_{s})D\boldsymbol{\theta}_{s}\right)\right]\\
+ & =D^{4}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\boldsymbol{\theta}_{s}^{\prime}+D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime\prime}−\frac{1}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}-\left[\frac{1}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}+\frac{s}{n}\left(\frac{d}{ds}\left[D^{3}g(\boldsymbol{θ}_{s})\right]\boldsymbol{\theta}_{s}^{\prime}+D^{3}g(\boldsymbol{θ}_{s})\frac{d}{ds}\boldsymbol{\theta}_{s}^{\prime}\right)\right]\\
+ & =D^{4}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\boldsymbol{\theta}_{s}^{\prime}+D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime\prime}−\frac{2}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}-\frac{s}{n}\left(\frac{d}{ds}\left[D^{3}g(\boldsymbol{θ}_{s})\right]\boldsymbol{\theta}_{s}^{\prime}+D^{3}g(\boldsymbol{θ}_{s})\frac{d}{ds}\boldsymbol{\theta}_{s}^{\prime}\right).
+\end{align*}
+
+\end_inset
+
+We leave the last term with the leading 
+\begin_inset Formula $s$
+\end_inset
+
+ here as we are going to evaluate the expression at 
+\begin_inset Formula $s=0$
+\end_inset
+
+ in a moment so that term will go to zero.
+\end_layout
+
+\begin_layout Standard
+Now note that 
+\begin_inset Formula 
+\[
+\frac{1}{2}\log_{e}\det\Sigma_{s}=-\frac{1}{2}\log_{e}\det A(s),
+\]
+
+\end_inset
+
+so by usual matrix identities
+\begin_inset Formula 
+\begin{align*}
+\frac{d}{ds}\left[-\frac{1}{2}\log_{e}\det A(s)\right] & =-\frac{1}{2}\text{trace}\left(A(s)^{-1}\frac{dA(s)}{ds}\right)\;\;\text{and}\\
+\frac{d^{2}}{ds^{2}}\left[-\frac{1}{2}\log_{e}\det A(s)\right]\vert_{s=0} & =\frac{1}{2}\text{trace}\left(\left[\Sigma\frac{dA(s)}{ds}\vert_{s=0}\right]^{2}\right)-\frac{1}{2}\text{trace}\left(\Sigma\frac{d^{2}A}{ds^{2}}\vert_{s=0}\right)
+\end{align*}
+
+\end_inset
+
+Now taking these pieces:
+\begin_inset Formula 
+\begin{align*}
+\frac{d^{2}}{ds^{2}}\frac{1}{2}\log_{e}\det\Sigma_{s} & =\frac{d^{2}}{ds^{2}}\left[-\frac{1}{2}\log_{e}\det A(s)\right]\vert_{s=0}\\
+ & =\frac{1}{2}\text{trace}\left(\left[\Sigma\frac{dA(s)}{ds}\vert_{s=0}\right]^{2}\right)-\frac{1}{2}\text{trace}\left(\Sigma\frac{d^{2}A}{ds^{2}}\vert_{s=0}\right)\\
+ & =\frac{1}{2}\text{trace}\left(\left[\Sigma\left(D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}−\frac{1}{n}D^{2}g(\boldsymbol{θ}_{s})-\cancelto{0}{\frac{s}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}}\right)\vert_{s=0}\right]^{2}\right)\\
+ & \;\;-\frac{1}{2}\text{trace}\left(\Sigma\left(D^{4}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}\boldsymbol{\theta}_{s}^{\prime}+D^{3}h(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime\prime}−\frac{2}{n}D^{3}g(\boldsymbol{θ}_{s})\boldsymbol{\theta}_{s}^{\prime}-\cancelto{0}{\frac{s}{n}\left(\frac{d}{ds}\left[D^{3}g(\boldsymbol{θ}_{s})\right]\boldsymbol{\theta}_{s}^{\prime}+D^{3}g(\boldsymbol{θ}_{s})\frac{d}{ds}\boldsymbol{\theta}_{s}^{\prime}\right)}\right)\vert_{s=0}\right)\\
+ & =\frac{1}{2}\text{trace}\left(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}−\frac{1}{n}D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\right)-\frac{1}{2}\text{trace}\left(\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}+D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime\prime}\vert_{s=0}−\frac{2}{n}D^{3}g(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\right)\right)\\
+ & =\frac{1}{2}\text{trace}\left(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}−\frac{1}{n}D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\right)\\
+ & \;\;-\frac{1}{2}\text{trace}\left(\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}+D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime\prime}\vert_{s=0}−\frac{2}{n}D^{3}g(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\right)\right)
+\end{align*}
+
+\end_inset
+
+and substituting the expressions for 
+\begin_inset Formula $\boldsymbol{\theta}_{s}^{\prime}$
+\end_inset
+
+ and 
+\begin_inset Formula $\boldsymbol{\theta}_{s}^{\prime\prime}$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{align*}
+\frac{d^{2}}{ds^{2}}\frac{1}{2}\log_{e}\det\Sigma_{s} & =\frac{1}{2}\text{trace}\left(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}−\frac{1}{n}D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\right)-\frac{1}{2}\text{trace}\left(\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}+D^{3}h(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime\prime}\vert_{s=0}−\frac{2}{n}D^{3}g(\hat{\boldsymbol{θ}})\boldsymbol{\theta}_{s}^{\prime}\vert_{s=0}\right)\right)\\
+ & =\frac{1}{2}\text{trace}\left(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})−\frac{1}{n}D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\right)\\
+ & \;\;-\frac{1}{2}\text{trace}\left(\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})+D^{3}h(\hat{\boldsymbol{θ}})\left[\frac{1}{n^{2}}\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})-D^{3}h(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\right]−\frac{2}{n}D^{3}g(\hat{\boldsymbol{θ}})\frac{1}{n}\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\right)\\
+ & =\frac{1}{2n^{2}}\text{trace}\Biggl(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})−D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\\
+ & \;\;-\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})+D^{3}h(\hat{\boldsymbol{θ}})\left[\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})-D^{3}h(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\right]−2D^{3}g(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\Biggr)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Putting it together
+\end_layout
+
+\begin_layout Standard
+Substituting the above into 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:theorem2-1"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ we then obtain:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+\mathbb{E}\left[g\left(\hat{\boldsymbol{\theta}}\right)\right] & =g\left(\hat{\boldsymbol{\theta}}\right)+\frac{1}{2n}\text{trace}\left(D^{2}g(\boldsymbol{\theta})\vert_{\boldsymbol{\theta}_{s}}\Sigma-D^{3}h(\boldsymbol{\theta})[\Sigma,\Sigma Dg]\right)\quad\text{and}\nonumber \\
+\hat{\text{Var}}\left[g\left(\hat{\boldsymbol{\theta}}\right)\right] & =(Dg)^{T}\Sigma(Dg)/n+\frac{1}{2n^{2}}\text{trace}\Biggl(\left[\Sigma\left(D^{3}h(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})−D^{2}g(\hat{\boldsymbol{θ}})\right)\right]^{2}\nonumber \\
+ & \;\;\;-\Sigma\left(D^{4}h(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})+D^{3}h(\hat{\boldsymbol{θ}})\left[\Sigma\left(2D^{2}g(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})-D^{3}h(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\right]−2D^{3}g(\hat{\boldsymbol{θ}})\Sigma Dg(\hat{\boldsymbol{\theta}})\right)\Biggr).
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In practice,
+ we can obtain 
+\begin_inset Formula $\mathbf{V}_{\boldsymbol{\theta}}=\Sigma/n$
+\end_inset
+
+ as the posterior covariance matrix (via 
+\family typewriter
+mgcv::vcov
+\family default
+,
+ see 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "wood_smoothing_2016"
+literal "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "miller_bayesian_2025"
+literal "false"
+
+\end_inset
+
+ for more information on the meaning of these covariance matrices and how to include uncertainty from smoothing parameters).
+ 
+\end_layout
+
+\begin_layout Standard
+We can obtain 
+\begin_inset Formula $D^{2}g(\hat{\boldsymbol{\theta}})=\left.\frac{\partial^{2}g(\boldsymbol{\theta})}{\partial\boldsymbol{\theta}}\right|_{\boldsymbol{\theta}=\hat{\boldsymbol{\theta}}}$
+\end_inset
+
+ (i.e.,
+ the hessian of 
+\begin_inset Formula $g(\boldsymbol{\theta})$
+\end_inset
+
+ at the REML-optimal parameters) by numerical derivatives (e.g.,
+ 
+\family typewriter
+numDeriv::hessian
+\family default
+;
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "paulgilbertandravivaradhan_numderiv_2006"
+literal "false"
+
+\end_inset
+
+) or by analytical expression.
+ Since the analytical expression is faster to compute (since we know that 
+\begin_inset Formula $g(\boldsymbol{\beta})=b^{X\boldsymbol{\beta}}$
+\end_inset
+
+),
+ we calculate the 
+\begin_inset Formula $j,k^{\text{th}}$
+\end_inset
+
+ entry in the hessian is given by:
+\begin_inset Formula 
+\begin{align*}
+\left[D^{2}g(\boldsymbol{\beta})\right]_{jk}=\frac{\partial^{2}b^{X\boldsymbol{\beta}}}{\partial\beta_{j}\partial\beta_{k}} & =\frac{\partial}{\partial\beta_{j}}\frac{\partial}{\partial\beta_{k}}b^{X\boldsymbol{\beta}}\\
+ & =\frac{\partial}{\partial\beta_{j}}\left[\left(\frac{\partial}{\partial\beta_{k}}X\boldsymbol{\beta}\right)b^{X\boldsymbol{\beta}}\log_{e}b\right]\\
+ & =\frac{\partial}{\partial\beta_{j}}\left(\boldsymbol{x}_{k}^{T}b^{X\boldsymbol{\beta}}\log_{e}b\right)\\
+ & =\boldsymbol{x}_{k}^{T}\left(\log_{e}b\right)\frac{\partial}{\partial\beta_{j}}b^{X\boldsymbol{\beta}}\\
+ & =\boldsymbol{x}_{k}^{T}\left(\log_{e}b\right)\boldsymbol{x}_{j}b^{X\boldsymbol{\beta}}\left(\log_{e}b\right)\\
+ & =\left(\log_{e}b\right)^{2}\boldsymbol{x}_{k}^{T}\boldsymbol{x}_{j}b^{X\boldsymbol{\beta}}
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $b$
+\end_inset
+
+ is the base of the response (i.e.,
+ we are modelling on the 
+\begin_inset Formula $\log_{b}$
+\end_inset
+
+ scale) and 
+\begin_inset Formula $\boldsymbol{x}_{j}$
+\end_inset
+
+ and 
+\begin_inset Formula $\boldsymbol{x}_{k}$
+\end_inset
+
+ indicate a rows/columns of the design matrix 
+\begin_inset Formula $X$
+\end_inset
+
+.
+ By extension (and because we need it for the variance term):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\left[D^{3}g(\boldsymbol{\beta})\right]_{ijk}=\frac{\partial^{3}b^{X\boldsymbol{\beta}}}{\partial\beta_{j}\partial\beta_{k}\partial\beta_{l}} & =\left(\log_{e}b\right)^{3}\left(\boldsymbol{x}_{l}\times\boldsymbol{x}_{k}^{T}\boldsymbol{x}_{j}\right)b^{X\boldsymbol{\beta}},
+\end{align*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\left(\boldsymbol{x}_{l}\times\boldsymbol{x}_{k}^{T}\boldsymbol{x}_{j}\right)$
+\end_inset
+
+ is an order 3 tensor (i.e.,
+ a 3-dimensional array).
+\end_layout
+
+\begin_layout Section*
+Acknowledgement
+\end_layout
+
+\begin_layout Standard
+Note that the derivations were checked using Claude Opus 5.
+ A human then checked these calculations.
+\end_layout
+
+\end_body
+\end_document
