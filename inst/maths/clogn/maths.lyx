@@ -1599,29 +1599,12 @@ library(ggplot2)
 
 \begin_layout Plain Layout
 
-# make a 1D example with less noise
+# make a 1D example
 \end_layout
 
 \begin_layout Plain Layout
 
-set.seed(42)
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-# simulated example from ?gam
-\end_layout
-
-\begin_layout Plain Layout
-
-dat <- gamSim(1,
- n=200,
- dist="normal",
- scale=1)
+set.seed(123)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1630,13 +1613,30 @@ dat <- gamSim(1,
 
 \begin_layout Plain Layout
 
-e <- rnorm(nrow(dat),
- sd=2)
+# simulated example from gam
 \end_layout
 
 \begin_layout Plain Layout
 
-dat$y2 <- 10^(dat$f2/10 + e)
+data <- gamSim(1,
+ n = 400,
+ dist = "normal",
+ scale = 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+noise <- rnorm(nrow(data),
+ sd = 0.1)
+\end_layout
+
+\begin_layout Plain Layout
+
+data$y2 <- 10^(data$f2 / 10 + noise)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1650,8 +1650,12 @@ dat$y2 <- 10^(dat$f2/10 + e)
 
 \begin_layout Plain Layout
 
-dat$y2 <- cbind(dat$y2,
- dat$y2)
+data$y2 <- cbind(data$y2,
+ data$y2)
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -1662,31 +1666,31 @@ dat$y2 <- cbind(dat$y2,
 
 \begin_layout Plain Layout
 
-dat$y2[dat$y2[,
- 1] < 0.01,
+cen_level <- 0.5
+\end_layout
+
+\begin_layout Plain Layout
+
+data$y2[data$y2[,
+ 1] < cen_level,
  2] <- -Inf
 \end_layout
 
 \begin_layout Plain Layout
 
-dat$y2[dat$y2[,
- 1] < 0.01,
- 1] <- 0.01
+data$y2[data$y2[,
+ 1] < cen_level,
+ 1] <- cen_level
 \end_layout
 
 \begin_layout Plain Layout
 
-\end_layout
-
-\begin_layout Plain Layout
-
-# response will be transformed by clognorm before fitting
 \end_layout
 
 \begin_layout Plain Layout
 
 b2 <- gam(y2~s(x2),
- data=dat,
+ data=data,
  method="REML",
  family=clognorm(base=10))
 \end_layout
@@ -1694,10 +1698,6 @@ b2 <- gam(y2~s(x2),
 \begin_layout Plain Layout
 
 summary(b2)
-\end_layout
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset
@@ -1749,24 +1749,23 @@ echo=FALSE
 
 \begin_layout Plain Layout
 
-# use a random subset of the data for clarity
 \end_layout
 
 \begin_layout Plain Layout
 
-pred <- dat[sample(1:nrow(dat),
- 50),
- ]
+# compare plotted predictions on the response scale
 \end_layout
 
 \begin_layout Plain Layout
 
-# need to remove the response
+# create prediction data
 \end_layout
 
 \begin_layout Plain Layout
 
-pred$y2 <- NULL
+pred <- data.frame(x2=seq(min(data$x2),
+ max(data$x2),
+ length.out=300))
 \end_layout
 
 \begin_layout Plain Layout
@@ -1775,7 +1774,7 @@ pred$y2 <- NULL
 
 \begin_layout Plain Layout
 
-# uncorrected (on log10 scale)
+# uncorrected (on link scale)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1787,7 +1786,7 @@ old <- predict(b2,
 
 \begin_layout Plain Layout
 
-# corrected (on response scale)
+# corrected (must use type="response")
 \end_layout
 
 \begin_layout Plain Layout
@@ -1804,37 +1803,51 @@ new <- predict(b2,
 
 \begin_layout Plain Layout
 
-# create data.frame for plotting
+# make data for the plot
 \end_layout
 
 \begin_layout Plain Layout
 
-preddat <- data.frame(pred.old = 10^old$fit,
+predict_df <- data.frame(
 \end_layout
 
 \begin_layout Plain Layout
 
-                      pred.cor = new$fit,
+  x = rep(pred$x2,
+ 2),
 \end_layout
 
 \begin_layout Plain Layout
 
-                      pred.upper.old = 10^(old$fit + 1.96*old$se.fit),
+  pred = c(10^old$fit,
+ new$fit),
 \end_layout
 
 \begin_layout Plain Layout
 
-                      pred.upper.cor = 10^(log10(new$fit) + 1.96*new$se.fit),
+  ci_lower = c(10^(old$fit - 1.96*old$se.fit),
 \end_layout
 
 \begin_layout Plain Layout
 
-                      pred.lower.old = 10^(old$fit - 1.96*old$se.fit),
+               new$fit - 1.96*new$se.fit),
 \end_layout
 
 \begin_layout Plain Layout
 
-                      pred.lower.cor = 10^(log10(new$fit) - 1.96*new$se.fit))
+  ci_upper = c(10^(old$fit + 1.96*old$se.fit),
+\end_layout
+
+\begin_layout Plain Layout
+
+               new$fit + 1.96*new$se.fit),
+\end_layout
+
+\begin_layout Plain Layout
+
+  model = rep(c("cnorm",
+ "clognorm"),
+ each=nrow(pred)))
 \end_layout
 
 \begin_layout Plain Layout
@@ -1843,93 +1856,63 @@ preddat <- data.frame(pred.old = 10^old$fit,
 
 \begin_layout Plain Layout
 
-# pretty (ish) plot
+# create plot
 \end_layout
 
 \begin_layout Plain Layout
 
-ggplot(preddat) +
+p <- ggplot(predict_df,
+ aes(x=x)) +
 \end_layout
 
 \begin_layout Plain Layout
 
-  geom_point(aes(x=pred.old,
- y=pred.cor)) +
+  geom_point(aes(x=x2,
+ y=10^y2[,1]),
+ data=data) +
 \end_layout
 
 \begin_layout Plain Layout
 
-  geom_segment(aes(x=pred.lower.old,
- xend=pred.upper.old,
+  geom_ribbon(aes(ymin=ci_lower,
+ ymax=ci_upper,
+ fill=model),
 \end_layout
 
 \begin_layout Plain Layout
 
-                   y=pred.cor,
- yend=pred.cor)) +
+              alpha=0.2) +
 \end_layout
 
 \begin_layout Plain Layout
 
-  geom_segment(aes(y=pred.lower.cor,
- yend=pred.upper.cor,
+  geom_line(aes(y=pred,
+ colour=model)) +
 \end_layout
 
 \begin_layout Plain Layout
 
-                   x=pred.old,
- xend=pred.old)) +
+  scale_y_continuous(trans="log10") +
 \end_layout
 
 \begin_layout Plain Layout
 
-  theme_minimal() +
+  labs(x="x2",
+ y="Predictions on response scale") +
 \end_layout
 
 \begin_layout Plain Layout
 
-  geom_abline(intercept=0,
- slope=1,
- colour=
-\begin_inset Quotes erd
-\end_inset
-
-red
-\begin_inset Quotes erd
-\end_inset
-
-) +
+  theme_bw()
 \end_layout
 
 \begin_layout Plain Layout
 
-  labs(x=
-\begin_inset Quotes erd
-\end_inset
-
-Geometric mean (uncorrected) estimates
-\begin_inset Quotes erd
-\end_inset
-
-,
+print(p)
 \end_layout
 
 \begin_layout Plain Layout
 
-       y=
-\begin_inset Quotes erd
-\end_inset
-
-Arithmetic mean (corrected) estimates
-\begin_inset Quotes erd
-\end_inset
-
-) +
-\end_layout
-
-\begin_layout Plain Layout
-
-  coord_equal()
 \end_layout
 
 \end_inset
@@ -1941,7 +1924,7 @@ Arithmetic mean (corrected) estimates
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Comparison of the estimators.
+Comparison of corrected and uncorrected predictions.
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:est-comp"

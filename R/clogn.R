@@ -27,6 +27,7 @@
 #' @param link The link function: only '"identity"' is supported
 #' @return `family` object
 #' @importFrom mgcv predict.gam predict.bam
+#' @importFrom stats dnorm
 #' @export
 #' @author David L Miller with code modified from mgcv by Simon Wood
 #' @examples
@@ -34,7 +35,6 @@
 #' library(mgcvUtils)
 #' library(ggplot2)
 #'
-#' devtools::load_all()
 #' # make a 1D example
 #' set.seed(123)
 #'
@@ -208,13 +208,13 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       a   <- drop(Vb %*% x0)
       # x0' V x0
       q00 <- drop(x0 %*% a)
-      e   <- if (nc > 0L && skew) drop(Xc %*% a) else numeric(0)
+      e   <- if (nc > 0L) drop(Xc %*% a) else numeric(0)
 
       # expectation
       # 1/2 tr(V D2g)
       Ecorr <- 0.5 * cc^2 * q00
       # 1/2 T[V, V Dg]
-      Eskew <- if (nc > 0L && skew) 0.5 * cc * sum(tw * d * e) else 0
+      Eskew <- if (nc > 0L) 0.5 * cc * sum(tw * d * e) else 0
       # whole thing
       fit[i] <- g0 * (1 + Ecorr - Eskew)
 

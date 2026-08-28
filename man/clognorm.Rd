@@ -34,7 +34,6 @@ library(mgcv)
 library(mgcvUtils)
 library(ggplot2)
 
-devtools::load_all()
 # make a 1D example
 set.seed(123)
 

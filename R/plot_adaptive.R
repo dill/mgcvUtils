@@ -10,7 +10,7 @@
 #' @param nplot number of points used to make the grid for the plot
 #' @return just makes a plot, invisably returns the data underlying said plot
 #' @export
-#' @importFrom mgcv smooth.construct PredictMat
+#' @importFrom mgcv smooth.construct PredictMat s
 #' @export
 #' @author David L Miller with idea from Philip Dixon
 #' @examples
