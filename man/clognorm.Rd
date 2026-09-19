@@ -14,7 +14,16 @@ clognorm(theta = NULL, link = "identity", base = 10)
 \item{base}{the base of the logarithm used. base may be any number or "e"}
 }
 \value{
-\code{family} object
+\code{family} object, including \code{rd(mu, wt = 1, scale = 1)} for random
+draws, \code{qf(p, mu, wt = 1, scale = 1)} for quantiles, and
+\code{cdf(q, mu, wt = 1, scale = 1, logp = FALSE)} for cumulative probabilities.
+These functions describe the underlying uncensored log-normal response:
+draws, quantiles, and \code{q} are on the original response scale, while \code{mu}
+is the mean on the log scale with the specified \code{base} (as in
+\code{object$fitted.values}). The log-scale standard deviation is the family's
+current estimated \code{theta} divided by \code{sqrt(wt)}. The \code{scale} argument is
+accepted for compatibility but ignored. \code{logp = TRUE} returns log
+probabilities. Censoring limits are not applied to draws or quantiles.
 }
 \description{
 Implementation of a censored log-normal distribution. This uses \code{mgcv}'s
@@ -28,6 +37,13 @@ more information on how to specify censoring.
 \details{
 Further mathematical details are given in the \verb{inst/maths/} directory of
 this package.
+
+For censored quantile residuals, evaluate \code{cdf()} at the lower and
+upper censoring bounds on the original response scale, draw uniformly
+between these probabilities, and apply \code{\link[stats:qnorm]{stats::qnorm()}}. Use \code{0} for the
+lower bound of a left-censored observation and \code{Inf} for the upper bound
+of a right-censored observation. The helpers provide the uncensored
+distribution; they do not randomize residuals or apply censoring.
 }
 \examples{
 library(mgcv)

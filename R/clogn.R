@@ -25,7 +25,23 @@
 #' @param base the base of the logarithm used. base may be any number or "e"
 #' @param theta kept as a placeholder, but only estimated `theta` is supported.
 #' @param link The link function: only '"identity"' is supported
-#' @return `family` object
+#' @return `family` object, including `rd(mu, wt = 1, scale = 1)` for random
+#'   draws, `qf(p, mu, wt = 1, scale = 1)` for quantiles, and
+#'   `cdf(q, mu, wt = 1, scale = 1, logp = FALSE)` for cumulative probabilities.
+#'   These functions describe the underlying uncensored log-normal response:
+#'   draws, quantiles, and `q` are on the original response scale, while `mu`
+#'   is the mean on the log scale with the specified `base` (as in
+#'   `object$fitted.values`). The log-scale standard deviation is the family's
+#'   current estimated `theta` divided by `sqrt(wt)`. The `scale` argument is
+#'   accepted for compatibility but ignored. `logp = TRUE` returns log
+#'   probabilities. Censoring limits are not applied to draws or quantiles.
+#'
+#' @details For censored quantile residuals, evaluate `cdf()` at the lower and
+#'   upper censoring bounds on the original response scale, draw uniformly
+#'   between these probabilities, and apply [stats::qnorm()]. Use `0` for the
+#'   lower bound of a left-censored observation and `Inf` for the upper bound
+#'   of a right-censored observation. The helpers provide the uncensored
+#'   distribution; they do not randomize residuals or apply censoring.
 #' @importFrom mgcv predict.gam predict.bam
 #' @importFrom stats dnorm
 #' @export
@@ -101,6 +117,26 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
   # save the base used for later
   attr(cln, "base") <- base
+
+  # Keep access to the mutable theta shared by cnorm's fitting functions.
+  get_theta <- cln$getTheta
+  log_base <- if (base == "e") 1 else log(base)
+
+  cln$rd <- function(mu, wt = 1, scale = 1) {
+    stats::rlnorm(length(mu), meanlog = mu * log_base,
+                  sdlog = get_theta(TRUE) * abs(log_base) / sqrt(wt))
+  }
+
+  cln$qf <- function(p, mu, wt = 1, scale = 1) {
+    stats::qlnorm(p, meanlog = mu * log_base,
+                  sdlog = get_theta(TRUE) * abs(log_base) / sqrt(wt))
+  }
+
+  cln$cdf <- function(q, mu, wt = 1, scale = 1, logp = FALSE) {
+    stats::plnorm(q, meanlog = mu * log_base,
+                  sdlog = get_theta(TRUE) * abs(log_base) / sqrt(wt),
+                  log.p = logp)
+  }
 
   cln$postproc <- function(family, y, prior.weights, fitted, linear.predictors,
                            offset, intercept){
