@@ -102,6 +102,13 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
   # save the base used for later
   attr(cln, "base") <- base
 
+  # Share prediction metadata between callbacks. mgcv only copies selected
+  # postproc results, so attributes on its return value are not carried over.
+  # Like cnorm's theta environment, this state belongs to this family instance.
+  state <- new.env(parent = emptyenv())
+  state$Xc <- NULL
+  state$z <- NULL
+
   cln$postproc <- function(family, y, prior.weights, fitted, linear.predictors,
                            offset, intercept){
 
@@ -127,12 +134,12 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # extra info needed for prediction later on when doing various
     # corrections
     cind <- .yat != y
-    attr(posr$family, "Xc") <- XX[cind,]
+    state$Xc <- XX[cind, , drop = FALSE]
     ## z     standardised censoring points for those rows
     base <- attr(family, "base")
     if(base=="e") base <- exp(1)
     z <- (logb(y, base) - linear.predictors)/family$getTheta(TRUE)
-    attr(posr$family, "z") <- as.vector(z[cind])
+    state$z <- as.vector(z[cind])
 
     posr
   } ## postproc
@@ -170,9 +177,9 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
 
     # lpmatrix rows of the CENSORED observations (nc x p); may be 0-row
-    Xc <- attr(family, "Xc")
+    Xc <- state$Xc
     # standardised censoring points for those rows
-    z <- attr(family, "z")
+    z <- state$z
     # scale parameter
     sigma <- family$getTheta(TRUE)
 
