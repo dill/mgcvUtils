@@ -11,7 +11,8 @@
 #'   are to be returned.
 #' @param scale character; what scale should the fitted values be returned on?
 #'   use `"response"` to obtain intervals on the response scale (exponentiated)
-#'   for a log-normally distributed response.
+#'   for a log-normally distributed response. Use `"link"` or
+#'   `"linear predictor"` for the model linear predictor.
 #' @param ci_level numeric; a value between 0 and 1 indicating the coverage of
 #'   the credible interval.
 #' @param ... arguments passed to [mgcv::predict.gam()]. Note that `type`,
@@ -22,10 +23,16 @@
 #'   used to fit the model (if `data` was `NULL`), or the variables supplied to
 #'  `data`. Four further columns are added:
 #'
-#' * `fitted`: the fitted values on the specified scale,
-#' * `se`: the standard error of the fitted values (always on the *link* scale),
-#' * `lower`, `upper`: the limits of the credible interval on the fitted values,
-#'     on the specified scale.
+#' * `.fitted`: the fitted values on the specified scale,
+#' * `.se`: the standard error of the fitted values on the specified scale,
+#' * `.lower_ci`, `.upper_ci`: approximate credible interval limits on the
+#'     specified scale.
+#'
+#' For response output, intervals are constructed on the natural-log scale
+#' using the delta-method SE (`.se / .fitted`) and then exponentiated. These
+#' are intervals for the corrected arithmetic mean, not prediction intervals
+#' for new observations. Link output uses the linear predictor and its SE
+#' directly. A `.row` index is added if it is not already present.
 #'
 #' @seealso clognorm
 #' @importFrom tibble as_tibble is_tibble
@@ -56,21 +63,17 @@
     data <- as_tibble(data)
   }
 
-  # get the transformation used
-  basec <- attr(object$family, "base")
-  base <- if(basec=="e") exp(1) else basec
-  trans <- if(basec=="e") exp else function(x) base^x
+  scale <- match.arg(scale)
+  type <- if (identical(scale, "response")) "response" else "link"
 
   fit <- predict(object,
-    newdata = data, ..., type = "response",
+    newdata = data, ..., type = type,
     se.fit = TRUE
   ) |>
     as.data.frame()
 
   names(fit) <- c(".fitted", ".se")
   fit <- as_tibble(fit)
-
-  fit$.fitted <- logb(fit[[".fitted"]], base=base)
 
   fit <- cbind(data, fit)
 
@@ -81,16 +84,16 @@
 
   # create the confidence interval
   crit <- coverage_normal(ci_level)
-  fit[[".lower_ci"]] <- fit[[".fitted"]] - (crit * fit[[".se"]])
-  fit[[".upper_ci"]] <- fit[[".fitted"]] + (crit * fit[[".se"]])
-
-  scale <- match.arg(scale)
-
-  # convert to the response scale if requested
   if (identical(scale, "response")) {
-    fit[[".lower_ci"]] <- trans(fit[[".lower_ci"]])
-    fit[[".upper_ci"]] <- trans(fit[[".upper_ci"]])
-    fit[[".fitted"]] <- trans(fit[[".fitted"]])
+    # The log of the corrected mean is not the model's linear predictor.
+    # Use a natural-log delta SE internally, retaining response units in .se.
+    log_fit <- log(fit[[".fitted"]])
+    log_se <- fit[[".se"]] / fit[[".fitted"]]
+    fit[[".lower_ci"]] <- exp(log_fit - crit * log_se)
+    fit[[".upper_ci"]] <- exp(log_fit + crit * log_se)
+  } else {
+    fit[[".lower_ci"]] <- fit[[".fitted"]] - crit * fit[[".se"]]
+    fit[[".upper_ci"]] <- fit[[".fitted"]] + crit * fit[[".se"]]
   }
 
   fit

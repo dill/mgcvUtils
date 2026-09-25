@@ -20,7 +20,8 @@ are to be returned.}
 
 \item{scale}{character; what scale should the fitted values be returned on?
 use \code{"response"} to obtain intervals on the response scale (exponentiated)
-for a log-normally distributed response.}
+for a log-normally distributed response. Use \code{"link"} or
+\code{"linear predictor"} for the model linear predictor.}
 
 \item{ci_level}{numeric; a value between 0 and 1 indicating the coverage of
 the credible interval.}
@@ -34,11 +35,17 @@ A tibble (data frame) whose first \emph{m} columns contain either the data
 used to fit the model (if \code{data} was \code{NULL}), or the variables supplied to
 \code{data}. Four further columns are added:
 \itemize{
-\item \code{fitted}: the fitted values on the specified scale,
-\item \code{se}: the standard error of the fitted values (always on the \emph{link} scale),
-\item \code{lower}, \code{upper}: the limits of the credible interval on the fitted values,
-on the specified scale.
+\item \code{.fitted}: the fitted values on the specified scale,
+\item \code{.se}: the standard error of the fitted values on the specified scale,
+\item \code{.lower_ci}, \code{.upper_ci}: approximate credible interval limits on the
+specified scale.
 }
+
+For response output, intervals are constructed on the natural-log scale
+using the delta-method SE (\code{.se / .fitted}) and then exponentiated. These
+are intervals for the corrected arithmetic mean, not prediction intervals
+for new observations. Link output uses the linear predictor and its SE
+directly. A \code{.row} index is added if it is not already present.
 }
 \description{
 This is a stand-in replacement for \code{gratia::fitted_values} to be used with
