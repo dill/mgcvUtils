@@ -127,6 +127,9 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       .yat <- y[,2]
       y <- y[,1]
       attr(y,"censor") <- .yat
+    } else {
+      .yat <- attr(y, "censor")
+      if (is.null(.yat)) .yat <- y
     }
 
     posr$null.deviance <- find.null.dev(family, y,
