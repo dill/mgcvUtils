@@ -12,8 +12,10 @@
 #' Censored log-normal distribution for `mgcv`
 #'
 #' Implementation of a censored log-normal distribution. This uses `mgcv`'s
-#' built-in `cnorm` distribution for model fitting. You must include the
-#' `base` used to transform the response as an argument. A
+#' built-in `cnorm` distribution for model fitting. Supply the response and
+#' all finite censoring bounds on the logarithmic scale, and specify the
+#' matching `base`. The family does not log-transform the supplied response.
+#' Preserve the `-Inf` and `Inf` censoring indicators. A
 #' special `predict` function to provide unbiased predicted values using the
 #' arithmetic mean and to account for bias incurred from random effects.
 #' post-hoc transformations to give "correct" results. See [[mgcv::cnorm]] for
@@ -44,11 +46,13 @@
 #' noise <- rnorm(nrow(data), sd = 0.1)
 #' data$y2 <- 10^(data$f2 / 10 + noise)
 #'
-#' # censor values below some value
+#' # transform the response before adding censoring indicators
+#' data$y2 <- log10(data$y2)
 #' data$y2 <- cbind(data$y2, data$y2)
 #'
 #' # indicate which values are censored, see ?cnorm for rules
-#' cen_level <- 0.5
+#' # censor below 2 on the original scale, using the same log base
+#' cen_level <- log10(2)
 #' data$y2[data$y2[, 1] < cen_level, 2] <- -Inf
 #' data$y2[data$y2[, 1] < cen_level, 1] <- cen_level
 #'

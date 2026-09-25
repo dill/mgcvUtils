@@ -1645,7 +1645,12 @@ data$y2 <- 10^(data$f2 / 10 + noise)
 
 \begin_layout Plain Layout
 
-# censor values below some value
+# transform the response before adding censoring indicators
+\end_layout
+
+\begin_layout Plain Layout
+
+data$y2 <- log10(data$y2)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1666,7 +1671,12 @@ data$y2 <- cbind(data$y2,
 
 \begin_layout Plain Layout
 
-cen_level <- 0.5
+# censor below 2 on the original scale, using the same log base
+\end_layout
+
+\begin_layout Plain Layout
+
+cen_level <- log10(2)
 \end_layout
 
 \begin_layout Plain Layout
