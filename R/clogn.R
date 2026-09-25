@@ -211,6 +211,8 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     }
 
     eta0 <- drop(X %*% beta)
+    # Formula offsets are supplied separately from the prediction matrix.
+    if (!is.null(off)) eta0 <- eta0 + off
     fit <- rep(NA, nrow(X))
     # need to return 0 if not calculated
     se.fit <- rep(0, nrow(X))
