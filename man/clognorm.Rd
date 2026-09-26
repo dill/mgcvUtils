@@ -28,6 +28,11 @@ post-hoc transformations to give "correct" results. See [\link[mgcv:cnorm]{mgcv:
 more information on how to specify censoring.
 }
 \details{
+Fitting weights are precision weights, as in \code{\link[mgcv:cnorm]{mgcv::cnorm()}}. They are
+included in the posterior correction. Response predictions describe the
+arithmetic mean at unit precision (log-scale residual variance
+\code{sigma^2}), including when predicting at the training covariates.
+
 Further mathematical details are given in the \verb{inst/maths/} directory of
 this package.
 }

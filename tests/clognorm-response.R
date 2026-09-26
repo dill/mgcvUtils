@@ -10,7 +10,6 @@ y <- 1 + d$x + rnorm(nrow(d), sd = 0.3)
 nd <- data.frame(x = seq(0, 1, length.out = 11))
 
 # Uncensored vectors and equivalent two-column responses give the same fit.
-# Positive values avoid the separate, existing extra-log issue in z.
 d$y <- y
 vector_fit <- gam(y ~ s(x, k = 6), data = d,
   family = clognorm(base = 2), method = "REML")

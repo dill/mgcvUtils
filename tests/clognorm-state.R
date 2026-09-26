@@ -4,8 +4,7 @@ near <- function(x, y, tol = 1e-8) {
   stopifnot(isTRUE(all.equal(as.numeric(x), as.numeric(y), tolerance = tol)))
 }
 
-# Positive responses keep the existing z calculation finite. This test targets
-# metadata transport, not the separate question of the response/log scale.
+# Check metadata transport against independent left-censoring formulas.
 set.seed(42)
 d <- data.frame(x = seq(0, 1, length.out = 100))
 y <- 1 + d$x + rnorm(nrow(d), sd = 0.3)
@@ -23,8 +22,7 @@ reference <- function(model, response) {
   V <- model$Vp[1L, 1L]
   c <- log(attr(model$family, "base"))
   censored <- response[, 2L] == -Inf
-  # Match the current postprocessor's z definition, deliberately unchanged.
-  z <- (log(response[censored, 1L], base = attr(model$family, "base")) - mu) / sigma
+  z <- (response[censored, 1L] - mu) / sigma
   lambda <- exp(dnorm(z, log = TRUE) - pnorm(z, log.p = TRUE))
   T <- sum(lambda * ((z + lambda) * (z + 2 * lambda) - 1)) / sigma^3
   Q <- -sum(lambda * (-(z + lambda)^2 * (z + 2 * lambda) +

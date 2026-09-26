@@ -21,6 +21,11 @@
 #' post-hoc transformations to give "correct" results. See [[mgcv::cnorm]] for
 #' more information on how to specify censoring.
 #'
+#' Fitting weights are precision weights, as in [mgcv::cnorm()]. They are
+#' included in the posterior correction. Response predictions describe the
+#' arithmetic mean at unit precision (log-scale residual variance
+#' `sigma^2`), including when predicting at the training covariates.
+#'
 #' Further mathematical details are given in the `inst/maths/` directory of
 #' this package.
 #'
@@ -111,7 +116,7 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
   # Like cnorm's theta environment, this state belongs to this family instance.
   state <- new.env(parent = emptyenv())
   state$Xc <- NULL
-  state$z <- NULL
+  state$tw <- state$qw <- numeric(0)
 
   cln$postproc <- function(family, y, prior.weights, fitted, linear.predictors,
                            offset, intercept){
@@ -142,11 +147,16 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # corrections
     cind <- .yat != y
     state$Xc <- XX[cind, , drop = FALSE]
-    ## z     standardised censoring points for those rows
-    base <- attr(family, "base")
-    if(base=="e") base <- exp(1)
-    z <- (logb(y, base) - linear.predictors)/family$getTheta(TRUE)
-    state$z <- as.vector(z[cind])
+    # cnorm's deviance derivatives cover both one-sided censoring directions,
+    # interval bounds and observation-specific precision weights. Deviance
+    # is twice the negative log likelihood, up to beta-independent terms.
+    state$tw <- state$qw <- numeric(0)
+    if (any(cind)) {
+      derivs <- family$Dd(y, linear.predictors, family$getTheta(),
+                          prior.weights, level = 2)
+      state$tw <- derivs$Dmu3[cind] / 2
+      state$qw <- derivs$Dmu4[cind] / 2
+    }
 
     posr
   } ## postproc
@@ -161,32 +171,11 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # g and the likelihood depend on beta only through linear predictors. No
     # 3- or 4-tensor is ever formed; the largest object is p x p.
 
-    # derivatives of psi(z) = log Phi(z)
-    # lambda computed on the log scale to stay stable in the far tails.
-    psi_derivs <- function(z){
-      lam <- exp(dnorm(z, log = TRUE)-pnorm(z, log.p = TRUE))
-      u <- z + lam
-      v <- z + 2 * lam
-      list(p3 = lam * (u * v - 1),
-           p4 = lam * (-u^2 * v + 2 * u + v - lam * u * (v + 2 * u)))
-    }
-
-    # weights t_i, q_i for D^3 l and D^4 l
-    # l(beta) = -log[L(beta) pi(beta)]; only censored rows contribute, since
-    # uncensored contributions and the penalty are quadratic in beta.
-    #   D^3 l = sum_i t_i x_i^{(x)3}     D^4 l = sum_i q_i x_i^{(x)4}
-    # Signs below are for LEFT censoring at C_i, z_i = (C_i - eta_i)/sigma.
-    # For right censoring flip the sign of z_i and of t_i.
-    cens_weights <- function(z, sigma){
-      d <- psi_derivs(z)
-      list(t = d$p3 / sigma^3, q = -d$p4 / sigma^4)
-    }
-
-
-    # lpmatrix rows of the CENSORED observations (nc x p); may be 0-row
+    # Only censored observations contribute third and fourth derivatives:
+    # uncensored likelihood contributions and penalties are quadratic in beta.
     Xc <- state$Xc
-    # standardised censoring points for those rows
-    z <- state$z
+    tw <- state$tw
+    qw <- state$qw
     # scale parameter
     sigma <- family$getTheta(TRUE)
 
@@ -201,9 +190,6 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # all the nc>0 parts are checking if there is censoring
     # those contributions only matter when there are censored observations
     if (nc > 0){
-      w <- cens_weights(z, sigma)
-      tw <- w$t
-      qw <- w$q
       # x_i' V x_i, shared across rows
       d <- rowSums((Xc %*% Vb) * Xc)
     } else {
