@@ -221,7 +221,8 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       fit[i] <- g0 * (1 + Ecorr - Eskew)
 
       if(se){
-        # variance
+        # Variance divided by g0^2: factor out the response mean before
+        # squaring to avoid overflow (or underflow) in intermediate terms.
         # B = c x0 x0' - sum_i t_i e_i x_i x_i'
         # so that V(D2g - T[VDg]) = c g0 V B
         B  <- cc * tcrossprod(x0)
@@ -229,23 +230,24 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
         VB <- Vb %*% B
         # (Dg)' V (Dg)
-        v1 <- cc^2 * g0^2 * q00
+        v1 <- cc^2 * q00
         # 1/2 tr([V(D2g - T[VDg])]^2)
-        v2 <- 0.5 * cc^2 * g0^2 * sum(VB * t(VB))
+        v2 <- 0.5 * cc^2 * sum(VB * t(VB))
         # tr(V D3g[VDg])
-        v3 <- cc^4 * g0^2 * q00^2
+        v3 <- cc^4 * q00^2
         v4 <- v5 <- 0
 
         if(nc > 0L) {
           # -1/2 tr(V Q[VDg,VDg])
-          v4 <- -0.5 * cc^2 * g0^2 * sum(qw * e^2 * d)
-          bpp <- 2 * cc^3 * g0^2 * q00 * a -
-                 cc^2 * g0^2 * drop(Vb %*% crossprod(Xc, tw * e^2))
+          v4 <- -0.5 * cc^2 * sum(qw * e^2 * d)
+          # beta'' divided by g0^2
+          bpp <- 2 * cc^3 * q00 * a -
+                 cc^2 * drop(Vb %*% crossprod(Xc, tw * e^2))
           # -1/2 tr(V T[beta''])
           v5 <- -0.5 * sum(tw * drop(Xc %*% bpp) * d)
         }
-        # sum the components
-        se.fit[i] <- sqrt(v1 + v2 + v3 + v4 + v5)
+        # Restore the response scale after taking the square root.
+        se.fit[i] <- abs(g0) * sqrt(v1 + v2 + v3 + v4 + v5)
       } # end se calculations
     } # end iteration over predictions
 
