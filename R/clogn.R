@@ -26,6 +26,9 @@
 #' arithmetic mean at unit precision (log-scale residual variance
 #' `sigma^2`), including when predicting at the training covariates.
 #'
+#' Fit models with [mgcv::gam()]. Fitting with [mgcv::bam()] is not supported
+#' because the prediction correction requires the full fitting design matrix.
+#'
 #' Further mathematical details are given in the `inst/maths/` directory of
 #' this package.
 #'
@@ -104,6 +107,19 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
   # first make a copy of mgcv::cnorm by Simon Wood
   cln <- mgcv::cnorm()#theta=theta, link=link)
+
+  # Check at fitting time so this also covers families constructed beforehand,
+  # aliases for bam(), and calls through wrappers or do.call().
+  cln$preinitialize <- function(y, family) {
+    frames <- seq_len(sys.nframe())
+    if (any(vapply(frames, function(i) {
+      identical(sys.function(i), mgcv::bam)
+    }, logical(1)))) {
+      stop("clognorm() does not support bam(); use mgcv::gam() instead.",
+           call. = FALSE)
+    }
+    NULL
+  }
 
   # get the distribution name right
   cln$name <- "clognorm"

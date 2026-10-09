@@ -33,6 +33,9 @@ included in the posterior correction. Response predictions describe the
 arithmetic mean at unit precision (log-scale residual variance
 \code{sigma^2}), including when predicting at the training covariates.
 
+Fit models with \code{\link[mgcv:gam]{mgcv::gam()}}. Fitting with \code{\link[mgcv:bam]{mgcv::bam()}} is not supported
+because the prediction correction requires the full fitting design matrix.
+
 Further mathematical details are given in the \verb{inst/maths/} directory of
 this package.
 }
