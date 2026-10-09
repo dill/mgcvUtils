@@ -1840,7 +1840,7 @@ predict_df <- data.frame(
 
 \begin_layout Plain Layout
 
-               new$fit - 1.96*new$se.fit),
+               exp(log(new$fit) - 1.96*new$se.fit/new$fit)),
 \end_layout
 
 \begin_layout Plain Layout
@@ -1850,7 +1850,7 @@ predict_df <- data.frame(
 
 \begin_layout Plain Layout
 
-               new$fit + 1.96*new$se.fit),
+               exp(log(new$fit) + 1.96*new$se.fit/new$fit)),
 \end_layout
 
 \begin_layout Plain Layout

@@ -75,14 +75,15 @@ old <- predict(b2, newdata=pred, se=TRUE)
 # corrected (must use type="response")
 new <- predict(b2, newdata=pred, type="response", se=TRUE)
 
+# Use delta-method log-scale intervals for the corrected mean.
 # make data for the plot
 predict_df <- data.frame(
   x = rep(pred$x2, 2),
   pred = c(10^old$fit, new$fit),
   ci_lower = c(10^(old$fit - 1.96*old$se.fit),
-               new$fit - 1.96*new$se.fit),
+               exp(log(new$fit) - 1.96*new$se.fit/new$fit)),
   ci_upper = c(10^(old$fit + 1.96*old$se.fit),
-               new$fit + 1.96*new$se.fit),
+               exp(log(new$fit) + 1.96*new$se.fit/new$fit)),
   model = rep(c("cnorm", "clognorm"), each=nrow(pred)))
 
 # create plot
