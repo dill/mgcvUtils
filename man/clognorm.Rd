@@ -28,6 +28,10 @@ post-hoc transformations to give "correct" results. See [\link[mgcv:cnorm]{mgcv:
 more information on how to specify censoring.
 }
 \details{
+For mgcv versions up to 1.9-4, a local compatibility correction handles zero
+endpoint terms in interval-censoring derivatives. Newer versions use mgcv
+unchanged; this compatibility boundary should be reviewed at the next release.
+
 Fitting weights are precision weights, as in \code{\link[mgcv:cnorm]{mgcv::cnorm()}}. They are
 included in the posterior correction. Response predictions describe the
 arithmetic mean at unit precision (log-scale residual variance
