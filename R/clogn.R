@@ -12,12 +12,26 @@
 #' Censored log-normal distribution for `mgcv`
 #'
 #' Implementation of a censored log-normal distribution. This uses `mgcv`'s
-#' built-in `cnorm` distribution for model fitting. You must include the
-#' `base` used to transform the response as an argument. A
+#' built-in `cnorm` distribution for model fitting. Supply the response and
+#' all finite censoring bounds on the logarithmic scale, and specify the
+#' matching `base`. The family does not log-transform the supplied response.
+#' Preserve the `-Inf` and `Inf` censoring indicators. A
 #' special `predict` function to provide unbiased predicted values using the
 #' arithmetic mean and to account for bias incurred from random effects.
 #' post-hoc transformations to give "correct" results. See [[mgcv::cnorm]] for
 #' more information on how to specify censoring.
+#'
+#' For mgcv versions up to 1.9-4, a local compatibility correction handles zero
+#' endpoint terms in interval-censoring derivatives. Newer versions use mgcv
+#' unchanged; this compatibility boundary should be reviewed at the next release.
+#'
+#' Fitting weights are precision weights, as in [mgcv::cnorm()]. They are
+#' included in the posterior correction. Response predictions describe the
+#' arithmetic mean at unit precision (log-scale residual variance
+#' `sigma^2`), including when predicting at the training covariates.
+#'
+#' Fit models with [mgcv::gam()]. Fitting with [mgcv::bam()] is not supported
+#' because the prediction correction requires the full fitting design matrix.
 #'
 #' Further mathematical details are given in the `inst/maths/` directory of
 #' this package.
@@ -60,11 +74,13 @@
 #' noise <- rnorm(nrow(data), sd = 0.1)
 #' data$y2 <- 10^(data$f2 / 10 + noise)
 #'
-#' # censor values below some value
+#' # transform the response before adding censoring indicators
+#' data$y2 <- log10(data$y2)
 #' data$y2 <- cbind(data$y2, data$y2)
 #'
 #' # indicate which values are censored, see ?cnorm for rules
-#' cen_level <- 0.5
+#' # censor below 2 on the original scale, using the same log base
+#' cen_level <- log10(2)
 #' data$y2[data$y2[, 1] < cen_level, 2] <- -Inf
 #' data$y2[data$y2[, 1] < cen_level, 1] <- cen_level
 #'
@@ -80,14 +96,15 @@
 #' # corrected (must use type="response")
 #' new <- predict(b2, newdata=pred, type="response", se=TRUE)
 #'
+#' # Use delta-method log-scale intervals for the corrected mean.
 #' # make data for the plot
 #' predict_df <- data.frame(
 #'   x = rep(pred$x2, 2),
 #'   pred = c(10^old$fit, new$fit),
 #'   ci_lower = c(10^(old$fit - 1.96*old$se.fit),
-#'                new$fit - 1.96*new$se.fit),
+#'                exp(log(new$fit) - 1.96*new$se.fit/new$fit)),
 #'   ci_upper = c(10^(old$fit + 1.96*old$se.fit),
-#'                new$fit + 1.96*new$se.fit),
+#'                exp(log(new$fit) + 1.96*new$se.fit/new$fit)),
 #'   model = rep(c("cnorm", "clognorm"), each=nrow(pred)))
 #'
 #' # create plot
@@ -111,6 +128,20 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
   # first make a copy of mgcv::cnorm by Simon Wood
   cln <- mgcv::cnorm()#theta=theta, link=link)
+  cln$Dd <- .clognorm_cnorm_compat(cln$Dd)
+
+  # Check at fitting time so this also covers families constructed beforehand,
+  # aliases for bam(), and calls through wrappers or do.call().
+  cln$preinitialize <- function(y, family) {
+    frames <- seq_len(sys.nframe())
+    if (any(vapply(frames, function(i) {
+      identical(sys.function(i), mgcv::bam)
+    }, logical(1)))) {
+      stop("clognorm() does not support bam(); use mgcv::gam() instead.",
+           call. = FALSE)
+    }
+    NULL
+  }
 
   # get the distribution name right
   cln$name <- "clognorm"
@@ -137,6 +168,12 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
                   sdlog = get_theta(TRUE) * abs(log_base) / sqrt(wt),
                   log.p = logp)
   }
+  # Share prediction metadata between callbacks. mgcv only copies selected
+  # postproc results, so attributes on its return value are not carried over.
+  # Like cnorm's theta environment, this state belongs to this family instance.
+  state <- new.env(parent = emptyenv())
+  state$Xc <- NULL
+  state$tw <- state$qw <- numeric(0)
 
   cln$postproc <- function(family, y, prior.weights, fitted, linear.predictors,
                            offset, intercept){
@@ -152,6 +189,9 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       .yat <- y[,2]
       y <- y[,1]
       attr(y,"censor") <- .yat
+    } else {
+      .yat <- attr(y, "censor")
+      if (is.null(.yat)) .yat <- y
     }
 
     posr$null.deviance <- find.null.dev(family, y,
@@ -163,12 +203,17 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # extra info needed for prediction later on when doing various
     # corrections
     cind <- .yat != y
-    attr(posr$family, "Xc") <- XX[cind,]
-    ## z     standardised censoring points for those rows
-    base <- attr(family, "base")
-    if(base=="e") base <- exp(1)
-    z <- (logb(y, base) - linear.predictors)/family$getTheta(TRUE)
-    attr(posr$family, "z") <- as.vector(z[cind])
+    state$Xc <- XX[cind, , drop = FALSE]
+    # cnorm's deviance derivatives cover both one-sided censoring directions,
+    # interval bounds and observation-specific precision weights. Deviance
+    # is twice the negative log likelihood, up to beta-independent terms.
+    state$tw <- state$qw <- numeric(0)
+    if (any(cind)) {
+      derivs <- family$Dd(y, linear.predictors, family$getTheta(),
+                          prior.weights, level = 2)
+      state$tw <- derivs$Dmu3[cind] / 2
+      state$qw <- derivs$Dmu4[cind] / 2
+    }
 
     posr
   } ## postproc
@@ -183,32 +228,11 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # g and the likelihood depend on beta only through linear predictors. No
     # 3- or 4-tensor is ever formed; the largest object is p x p.
 
-    # derivatives of psi(z) = log Phi(z)
-    # lambda computed on the log scale to stay stable in the far tails.
-    psi_derivs <- function(z){
-      lam <- exp(dnorm(z, log = TRUE)-pnorm(z, log.p = TRUE))
-      u <- z + lam
-      v <- z + 2 * lam
-      list(p3 = lam * (u * v - 1),
-           p4 = lam * (-u^2 * v + 2 * u + v - lam * u * (v + 2 * u)))
-    }
-
-    # weights t_i, q_i for D^3 l and D^4 l
-    # l(beta) = -log[L(beta) pi(beta)]; only censored rows contribute, since
-    # uncensored contributions and the penalty are quadratic in beta.
-    #   D^3 l = sum_i t_i x_i^{(x)3}     D^4 l = sum_i q_i x_i^{(x)4}
-    # Signs below are for LEFT censoring at C_i, z_i = (C_i - eta_i)/sigma.
-    # For right censoring flip the sign of z_i and of t_i.
-    cens_weights <- function(z, sigma){
-      d <- psi_derivs(z)
-      list(t = d$p3 / sigma^3, q = -d$p4 / sigma^4)
-    }
-
-
-    # lpmatrix rows of the CENSORED observations (nc x p); may be 0-row
-    Xc <- attr(family, "Xc")
-    # standardised censoring points for those rows
-    z <- attr(family, "z")
+    # Only censored observations contribute third and fourth derivatives:
+    # uncensored likelihood contributions and penalties are quadratic in beta.
+    Xc <- state$Xc
+    tw <- state$tw
+    qw <- state$qw
     # scale parameter
     sigma <- family$getTheta(TRUE)
 
@@ -223,9 +247,6 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     # all the nc>0 parts are checking if there is censoring
     # those contributions only matter when there are censored observations
     if (nc > 0){
-      w <- cens_weights(z, sigma)
-      tw <- w$t
-      qw <- w$q
       # x_i' V x_i, shared across rows
       d <- rowSums((Xc %*% Vb) * Xc)
     } else {
@@ -233,6 +254,8 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
     }
 
     eta0 <- drop(X %*% beta)
+    # Formula offsets are supplied separately from the prediction matrix.
+    if (!is.null(off)) eta0 <- eta0 + off
     fit <- rep(NA, nrow(X))
     # need to return 0 if not calculated
     se.fit <- rep(0, nrow(X))
@@ -255,7 +278,8 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
       fit[i] <- g0 * (1 + Ecorr - Eskew)
 
       if(se){
-        # variance
+        # Variance divided by g0^2: factor out the response mean before
+        # squaring to avoid overflow (or underflow) in intermediate terms.
         # B = c x0 x0' - sum_i t_i e_i x_i x_i'
         # so that V(D2g - T[VDg]) = c g0 V B
         B  <- cc * tcrossprod(x0)
@@ -263,23 +287,24 @@ clognorm <- function (theta = NULL, link = "identity", base=10) {
 
         VB <- Vb %*% B
         # (Dg)' V (Dg)
-        v1 <- cc^2 * g0^2 * q00
+        v1 <- cc^2 * q00
         # 1/2 tr([V(D2g - T[VDg])]^2)
-        v2 <- 0.5 * cc^2 * g0^2 * sum(VB * t(VB))
+        v2 <- 0.5 * cc^2 * sum(VB * t(VB))
         # tr(V D3g[VDg])
-        v3 <- cc^4 * g0^2 * q00^2
+        v3 <- cc^4 * q00^2
         v4 <- v5 <- 0
 
         if(nc > 0L) {
           # -1/2 tr(V Q[VDg,VDg])
-          v4 <- -0.5 * cc^2 * g0^2 * sum(qw * e^2 * d)
-          bpp <- 2 * cc^3 * g0^2 * q00 * a -
-                 cc^2 * g0^2 * drop(Vb %*% crossprod(Xc, tw * e^2))
+          v4 <- -0.5 * cc^2 * sum(qw * e^2 * d)
+          # beta'' divided by g0^2
+          bpp <- 2 * cc^3 * q00 * a -
+                 cc^2 * drop(Vb %*% crossprod(Xc, tw * e^2))
           # -1/2 tr(V T[beta''])
           v5 <- -0.5 * sum(tw * drop(Xc %*% bpp) * d)
         }
-        # sum the components
-        se.fit[i] <- sqrt(v1 + v2 + v3 + v4 + v5)
+        # Restore the response scale after taking the square root.
+        se.fit[i] <- abs(g0) * sqrt(v1 + v2 + v3 + v4 + v5)
       } # end se calculations
     } # end iteration over predictions
 

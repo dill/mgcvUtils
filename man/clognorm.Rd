@@ -27,14 +27,28 @@ probabilities. Censoring limits are not applied to draws or quantiles.
 }
 \description{
 Implementation of a censored log-normal distribution. This uses \code{mgcv}'s
-built-in \code{cnorm} distribution for model fitting. You must include the
-\code{base} used to transform the response as an argument. A
+built-in \code{cnorm} distribution for model fitting. Supply the response and
+all finite censoring bounds on the logarithmic scale, and specify the
+matching \code{base}. The family does not log-transform the supplied response.
+Preserve the \code{-Inf} and \code{Inf} censoring indicators. A
 special \code{predict} function to provide unbiased predicted values using the
 arithmetic mean and to account for bias incurred from random effects.
 post-hoc transformations to give "correct" results. See [\link[mgcv:cnorm]{mgcv::cnorm}] for
 more information on how to specify censoring.
 }
 \details{
+For mgcv versions up to 1.9-4, a local compatibility correction handles zero
+endpoint terms in interval-censoring derivatives. Newer versions use mgcv
+unchanged; this compatibility boundary should be reviewed at the next release.
+
+Fitting weights are precision weights, as in \code{\link[mgcv:cnorm]{mgcv::cnorm()}}. They are
+included in the posterior correction. Response predictions describe the
+arithmetic mean at unit precision (log-scale residual variance
+\code{sigma^2}), including when predicting at the training covariates.
+
+Fit models with \code{\link[mgcv:gam]{mgcv::gam()}}. Fitting with \code{\link[mgcv:bam]{mgcv::bam()}} is not supported
+because the prediction correction requires the full fitting design matrix.
+
 Further mathematical details are given in the \verb{inst/maths/} directory of
 this package.
 
@@ -59,11 +73,13 @@ data <- gamSim(1, n = 400, dist = "normal", scale = 1)
 noise <- rnorm(nrow(data), sd = 0.1)
 data$y2 <- 10^(data$f2 / 10 + noise)
 
-# censor values below some value
+# transform the response before adding censoring indicators
+data$y2 <- log10(data$y2)
 data$y2 <- cbind(data$y2, data$y2)
 
 # indicate which values are censored, see ?cnorm for rules
-cen_level <- 0.5
+# censor below 2 on the original scale, using the same log base
+cen_level <- log10(2)
 data$y2[data$y2[, 1] < cen_level, 2] <- -Inf
 data$y2[data$y2[, 1] < cen_level, 1] <- cen_level
 
@@ -79,14 +95,15 @@ old <- predict(b2, newdata=pred, se=TRUE)
 # corrected (must use type="response")
 new <- predict(b2, newdata=pred, type="response", se=TRUE)
 
+# Use delta-method log-scale intervals for the corrected mean.
 # make data for the plot
 predict_df <- data.frame(
   x = rep(pred$x2, 2),
   pred = c(10^old$fit, new$fit),
   ci_lower = c(10^(old$fit - 1.96*old$se.fit),
-               new$fit - 1.96*new$se.fit),
+               exp(log(new$fit) - 1.96*new$se.fit/new$fit)),
   ci_upper = c(10^(old$fit + 1.96*old$se.fit),
-               new$fit + 1.96*new$se.fit),
+               exp(log(new$fit) + 1.96*new$se.fit/new$fit)),
   model = rep(c("cnorm", "clognorm"), each=nrow(pred)))
 
 # create plot

@@ -27,6 +27,7 @@ Imports:
     utils,
     rlang
 Suggests:
+    gratia,
     INLA, 
     MASS
 Config/roxygen2/version: 8.1.0
