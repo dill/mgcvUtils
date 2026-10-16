@@ -1,5 +1,7 @@
 # 0.0.5
 
+- Added `rd`, `qf`, and `cdf` functions to `clognorm()` for the underlying uncensored response distribution.
+
 - corrections to the `clognorm` functions down to me getting the maths wrong. Thanks to Matt Speers for pointing out issues that warranted much further investigation. See PDF/LyX in inst/maths/clogn for the fairly painful calculations
 
 # 0.0.4
