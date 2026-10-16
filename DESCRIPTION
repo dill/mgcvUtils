@@ -1,6 +1,6 @@
 Package: mgcvUtils
 Title: Some extra utilities for generalized additive modelling
-Version: 0.0.5
+Version: 0.0.6
 Authors@R: c(
     person("David L", "Miller",
            email = "dave@ninepointeightone.net",
@@ -8,7 +8,11 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-9640-6755")),
     person("Matteo", "Fasiolo",
            email = "matteo.fasiolo@gmail.com",
-           role = "aut"))
+           role = "aut"),
+    person(given = "Gavin L.", family = "Simpson",
+                    email = "ucfagls@gmail.com",
+                    role = c("aut"),
+                    comment = c(ORCID = "0000-0002-9084-8413")))
 Description: A collection of addtional utilities that make using mgcv easier.
 License: MIT + file LICENSE
 Encoding: UTF-8
